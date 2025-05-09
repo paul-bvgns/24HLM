@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import pygame
+import cv2
+import numpy as np
+import RPi.GPIO as GPIO
+import threading
+import time
+from config import *
 
 class VideoPlayer:
     def __init__(self):
