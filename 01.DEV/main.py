@@ -4,9 +4,9 @@
 import pygame
 import cv2
 import numpy as np
-import RPi.GPIO as GPIO
-import threading
 import time
+import threading
+from gpiozero import Button, RotaryEncoder
 from config import *
 
 class VideoPlayer:
@@ -20,64 +20,51 @@ class VideoPlayer:
         self.clock = pygame.time.Clock()
         self.current_language = DEFAULT_LANGUAGE
         self.running = True
-        self.overlay_requested = False  # Indicateur pour l'overlay
-        self.overlay_playing = False  # Variable pour vérifier si l'overlay est en cours
+        self.overlay_requested = False
+        self.overlay_playing = False
 
         print("Touches : 1=FR, 2=IT, 3=DE, 4=EN, 0=vidéo temporaire, q=quitter")
 
         # Setup GPIO
+        self.encoder_counter = 0
+        self.last_rotation_time = time.time()
         self.setup_gpio()
-        self.start_gpio_thread()
 
     def setup_gpio(self):
-        GPIO.setmode(GPIO.BCM)
         if MODE == "button":
-            GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+            self.button = Button(BUTTON_PIN)
+            self.button.when_pressed = self.on_button_press
         elif MODE == "encoder":
-            GPIO.setup(CLK_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(DT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            self.encoder = RotaryEncoder(CLK_PIN, DT_PIN)
+            self.encoder.when_rotated = self.on_encoder_rotate
 
-    def start_gpio_thread(self):
-        if MODE == "button":
-            thread = threading.Thread(target=self.gpio_button_loop)
-        elif MODE == "encoder":
-            thread = threading.Thread(target=self.gpio_encoder_loop)
-        thread.daemon = True
-        thread.start()
+            # Lancement d’un thread pour reset après timeout
+            thread = threading.Thread(target=self.encoder_timeout_loop)
+            thread.daemon = True
+            thread.start()
 
-    def gpio_button_loop(self):
-        while self.running:
-            if GPIO.input(BUTTON_PIN) == GPIO.HIGH and not self.overlay_playing:
-                print("[GPIO] Bouton appuyé")
+    def on_button_press(self):
+        if not self.overlay_playing:
+            print("[GPIOZERO] Bouton appuyé")
+            self.overlay_requested = True
+
+    def on_encoder_rotate(self):
+        if not self.overlay_playing:
+            self.encoder_counter += 1
+            self.last_rotation_time = time.time()
+            print(f"[ENCODER] Rotation détectée : {self.encoder_counter}")
+            if self.encoder_counter >= ENCODER_THRESHOLD:
+                print("[ENCODER] Seuil atteint. Lancement vidéo temporaire.")
                 self.overlay_requested = True
-                time.sleep(0.5)
-            time.sleep(0.01)
+                self.encoder_counter = 0
 
-    def gpio_encoder_loop(self):
-        last_clk = GPIO.input(CLK_PIN)
-        count = 0
-        last_time = time.time()
-
+    def encoder_timeout_loop(self):
         while self.running:
-            clk = GPIO.input(CLK_PIN)
-            dt = GPIO.input(DT_PIN)
-
-            if clk != last_clk:
-                last_time = time.time()
-                if dt != clk:
-                    count += 1
-                    print(f"[ENCODER] Rotation détectée : {count}")
-                    if count >= ENCODER_THRESHOLD and not self.overlay_playing:
-                        print("[ENCODER] Seuil atteint. Lancement vidéo temporaire.")
-                        self.overlay_requested = True
-                        count = 0
-                last_clk = clk
-
-            if time.time() - last_time > ENCODER_RESET_TIMEOUT and count != 0:
+            if (time.time() - self.last_rotation_time > ENCODER_RESET_TIMEOUT and
+                    self.encoder_counter != 0):
                 print("[ENCODER] Inactivité détectée. Reset.")
-                count = 0
-
-            time.sleep(0.01)
+                self.encoder_counter = 0
+            time.sleep(0.1)
 
     def play_video(self, path, loop=False):
         cap = cv2.VideoCapture(path)
@@ -104,21 +91,20 @@ class VideoPlayer:
             self.handle_events()
             if self.overlay_requested:
                 self.overlay_requested = False
-                self.overlay_playing = True  # Démarrage de l'overlay
+                self.overlay_playing = True
                 cap.release()
                 self.play_video(VIDEOS[self.current_language]["once"], loop=False)
-                cap = cv2.VideoCapture(path)  # Redémarre la boucle
+                cap = cv2.VideoCapture(path)
 
             self.clock.tick(30)
 
         cap.release()
-        self.overlay_playing = False  # Fin de l'overlay
+        self.overlay_playing = False
 
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-
             elif event.type == pygame.KEYDOWN:
                 key = event.unicode
                 if key == 'q':
@@ -133,7 +119,7 @@ class VideoPlayer:
                     if new_lang != self.current_language:
                         print(f"[LANGUE] Passage de {self.current_language} à {new_lang}")
                         self.current_language = new_lang
-                        raise StopIteration  # Quitte la lecture en boucle pour recharger
+                        raise StopIteration
 
     def run(self):
         try:
@@ -142,10 +128,8 @@ class VideoPlayer:
         except StopIteration:
             self.run()
         finally:
-            GPIO.cleanup()
             pygame.quit()
             print("[EXIT] Nettoyage terminé.")
-
 
 if __name__ == "__main__":
     player = VideoPlayer()
