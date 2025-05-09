@@ -68,6 +68,12 @@ def start_loop():
     ]
     
     current_loop_proc = subprocess.Popen(args)
+
+    time.sleep(1)
+
+    # Utiliser xdotool pour changer de focus à une autre fenêtre (par exemple, le terminal)
+    subprocess.run(["xdotool", "search", "--name", "Terminal", "windowfocus"])
+
     return current_loop_proc
 
 def play_overlay():
@@ -93,6 +99,12 @@ def play_overlay():
     ]
     
     subprocess.run(args)
+
+    time.sleep(1)
+
+    # Utiliser xdotool pour changer de focus à une autre fenêtre (par exemple, le terminal)
+    subprocess.run(["xdotool", "search", "--name", "Terminal", "windowfocus"])
+
     print("[OVERLAY] Vidéo temporaire terminée.")
 
 def button_mode_loop():
