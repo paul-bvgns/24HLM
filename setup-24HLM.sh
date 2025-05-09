@@ -67,8 +67,9 @@ mkdir -p ~/.config/autostart
 # Création d'un script wrapper pour le lancement avec les bonnes permissions
 cat << EOF > /home/pha5e/Desktop/run_24hlm.sh
 #!/bin/bash
-# Attendre que l'environnement graphique soit complètement chargé
-sleep 10
+while [ -z "$DISPLAY" ] || [ ! -d "/tmp/.X11-unix" ]; do
+  sleep 1
+done
 
 # Exécuter le script Python avec les bonnes permissions
 cd /home/pha5e/Desktop/24HLM/01.DEV/
