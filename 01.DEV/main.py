@@ -78,38 +78,63 @@ class VideoPlayer:
 
             time.sleep(0.01)
 
-    def play_video(self, path, loop=False):
+    def play_video(self, path, loop=False, fade=True):
         cap = cv2.VideoCapture(path)
         if not cap.isOpened():
             print(f"[ERREUR] Impossible d'ouvrir : {path}")
             return
 
         print(f"[VIDÉO] Lecture : {path}")
+        fade_duration = 30  # frames pour fade in/out
+        frame_count = 0
+        fading_out = False
 
         while cap.isOpened() and self.running:
             ret, frame = cap.read()
             if not ret:
                 if loop:
                     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    frame_count = 0
                     continue
-                break
+                else:
+                    break
 
             frame = cv2.resize(frame, self.size)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             surface = pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
+            surface = pygame.transform.scale(surface, self.size)
+
+            if fade:
+                # Appliquer fondu entrant (au début)
+                if frame_count < fade_duration:
+                    alpha = int(255 * (frame_count / fade_duration))
+                    surface.set_alpha(alpha)
+                # Appliquer fondu sortant (à la fin)
+                elif not loop and cap.get(cv2.CAP_PROP_POS_FRAMES) >= cap.get(cv2.CAP_PROP_FRAME_COUNT) - fade_duration:
+                    remaining = cap.get(cv2.CAP_PROP_FRAME_COUNT) - cap.get(cv2.CAP_PROP_POS_FRAMES)
+                    alpha = int(255 * (remaining / fade_duration))
+                    surface.set_alpha(alpha)
+                else:
+                    surface.set_alpha(255)
+
             self.screen.blit(surface, (0, 0))
             pygame.display.flip()
+            frame_count += 1
 
             self.handle_events()
+
+            # Si on demande une superposition, on quitte cette vidéo
             if self.overlay_requested:
                 self.overlay_requested = False
                 cap.release()
-                self.play_video(VIDEOS[self.current_language]["once"], loop=False)
-                cap = cv2.VideoCapture(path)  # Redémarre la boucle
+                self.play_video(VIDEOS[self.current_language]["once"], loop=False, fade=True)
+                cap = cv2.VideoCapture(path)
+                frame_count = 0
 
             self.clock.tick(30)
 
         cap.release()
+
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -135,7 +160,7 @@ class VideoPlayer:
     def run(self):
         try:
             while self.running:
-                self.play_video(VIDEOS[self.current_language]["loop"], loop=True)
+                self.play_video(VIDEOS[self.current_language]["loop"], loop=True, fade=False)
         except StopIteration:
             self.run()
         finally:
