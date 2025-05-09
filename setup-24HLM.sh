@@ -123,10 +123,10 @@ sudo systemctl enable nodisturb.service
 sudo systemctl start nodisturb.service
 
 # Clonage du dépôt GitHub
-echo "====================================================="
-echo "Clone du dépôt GitHub 24HLM..."
-echo "====================================================="
-git clone https://github.com/paul-bvgns/24HLM.git 24HLM
+#echo "====================================================="
+#echo "Clone du dépôt GitHub 24HLM..."
+#echo "====================================================="
+#git clone https://github.com/paul-bvgns/24HLM.git 24HLM
 
 
 # Message de fin
