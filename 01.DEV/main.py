@@ -61,9 +61,9 @@ def start_loop():
         "--hr-seek=no",
         "--vf=format=rgba",
         "--no-keepaspect",
-        "--deinterlace=no"
-        "--input-default-bindings=no" 
-        "--no-input-terminal"
+        "--deinterlace=no",
+        "--input-default-bindings=no",
+        "--no-input-terminal",
 
     ]
     
@@ -87,9 +87,9 @@ def play_overlay():
         "--no-border",
         "--geometry=0:0",
         "--alpha=yes",
-        "--vf=format=rgba,fade=t=in:st=0:d=1,fade=t=out:st=5:d=1"
-        "--input-default-bindings=no"
-        "--no-input-terminal"
+        "--vf=format=rgba,fade=t=in:st=0:d=1,fade=t=out:st=5:d=1",
+        "--input-default-bindings=no",
+        "--no-input-terminal",
     ]
     
     subprocess.run(args)
