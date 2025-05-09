@@ -53,7 +53,7 @@ PasswordAuthentication yes
 PermitRootLogin yes
 EOF
 
-# Supprimer le mot de passe utilisateur (remplacer 'pha5e' par le nom d'utilisateur si différent)
+# Supprimer le mot de passe utilisateur
 sudo passwd -d pha5e
 
 # Redémarrer le service SSH
@@ -79,48 +79,153 @@ echo "====================================================="
 echo "Configuration du mode NoDisturb..."
 echo "====================================================="
 
-# Création du script nodisturb.sh
-cat << EOF > ~/Desktop/24HLM/nodisturb.sh
+# Création du script no_disturb.sh
+cat > /usr/local/bin/no_disturb.sh << 'EOF'
 #!/bin/bash
 
-# Désactiver les notifications
-sudo systemctl stop notification-daemon
-sudo systemctl disable notification-daemon
+# Script mode "Ne pas déranger" pour Raspberry Pi
+# Ce script désactive temporairement plusieurs services pour éviter les interruptions
 
-# Désactiver la mise en veille et l'écran de veille
-xset s off
-xset -dpms
+# Vérifier si l'utilisateur est root
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Ce script doit être exécuté en tant que root (utilisez sudo)."
+    exit 1
+fi
+
+echo "Activation du mode 'Ne pas déranger'..."
+
+# Désactiver le Bluetooth
+echo "Désactivation du Bluetooth..."
+rfkill block bluetooth
+systemctl stop bluetooth.service
+systemctl disable bluetooth.service
+echo "Bluetooth désactivé."
 
 # Désactiver les mises à jour automatiques
-sudo sed -i 's/APT::Periodic::Update-Package-Lists "1"/APT::Periodic::Update-Package-Lists "0"/' /etc/apt/apt.conf.d/20auto-upgrades
-sudo sed -i 's/APT::Periodic::Unattended-Upgrade "1"/APT::Periodic::Unattended-Upgrade "0"/' /etc/apt/apt.conf.d/20auto-upgrades
+echo "Désactivation des mises à jour automatiques..."
+systemctl stop apt-daily.service
+systemctl stop apt-daily.timer
+systemctl stop apt-daily-upgrade.timer
+systemctl stop apt-daily-upgrade.service
+systemctl disable apt-daily.service
+systemctl disable apt-daily.timer
+systemctl disable apt-daily-upgrade.timer
+systemctl disable apt-daily-upgrade.service
+echo "Mises à jour automatiques désactivées."
 
-# Supprimer les messages système
-echo "*.*   -/dev/null" | sudo tee -a /etc/rsyslog.d/99-disable.conf
+# Désactiver les notifications système (si utilisation d'un environnement graphique)
+if [ -n "$DISPLAY" ]; then
+    echo "Désactivation des notifications..."
+    if command -v notify-send &> /dev/null; then
+        # Utilisation d'un fichier pour stocker l'état précédent
+        mkdir -p ~/.config/no-disturb
+        gsettings get org.freedesktop.Notifications.settings enable > ~/.config/no-disturb/notifications-state
+        gsettings set org.freedesktop.Notifications.settings enable false
+    fi
+    echo "Notifications désactivées."
+fi
+
+# Désactiver les journaux non essentiels
+echo "Réduction du niveau de journalisation..."
+systemctl stop rsyslog.service
+systemctl disable rsyslog.service
+echo "Journalisation réduite."
+
+# Réduire les services en arrière-plan
+echo "Désactivation des services non essentiels..."
+systemctl stop avahi-daemon.service
+systemctl disable avahi-daemon.service
+systemctl stop triggerhappy.service
+systemctl disable triggerhappy.service
+echo "Services non essentiels désactivés."
+
+# Créer un script de restauration
+cat > /usr/local/bin/disable_no_disturb.sh << 'INNEREOF'
+#!/bin/bash
+
+# Script de restauration - désactive le mode "Ne pas déranger"
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Ce script doit être exécuté en tant que root (utilisez sudo)."
+    exit 1
+fi
+
+echo "Désactivation du mode 'Ne pas déranger'..."
+
+# Réactiver le Bluetooth
+echo "Réactivation du Bluetooth..."
+rfkill unblock bluetooth
+systemctl start bluetooth.service
+systemctl enable bluetooth.service
+echo "Bluetooth réactivé."
+
+# Réactiver les mises à jour automatiques
+echo "Réactivation des mises à jour automatiques..."
+systemctl start apt-daily.service
+systemctl start apt-daily.timer
+systemctl start apt-daily-upgrade.timer
+systemctl start apt-daily-upgrade.service
+systemctl enable apt-daily.service
+systemctl enable apt-daily.timer
+systemctl enable apt-daily-upgrade.timer
+systemctl enable apt-daily-upgrade.service
+echo "Mises à jour automatiques réactivées."
+
+# Réactiver les notifications système
+if [ -n "$DISPLAY" ]; then
+    echo "Réactivation des notifications..."
+    if command -v notify-send &> /dev/null && [ -f ~/.config/no-disturb/notifications-state ]; then
+        previous_state=$(cat ~/.config/no-disturb/notifications-state)
+        gsettings set org.freedesktop.Notifications.settings enable "$previous_state"
+    fi
+    echo "Notifications réactivées."
+fi
+
+# Réactiver les journaux
+echo "Restauration de la journalisation..."
+systemctl start rsyslog.service
+systemctl enable rsyslog.service
+echo "Journalisation restaurée."
+
+# Réactiver les services en arrière-plan
+echo "Réactivation des services..."
+systemctl start avahi-daemon.service
+systemctl enable avahi-daemon.service
+systemctl start triggerhappy.service
+systemctl enable triggerhappy.service
+echo "Services réactivés."
+
+echo "Mode 'Ne pas déranger' désactivé. Tous les services sont restaurés."
+INNEREOF
+
+# Rendre le script de restauration exécutable
+chmod +x /usr/local/bin/disable_no_disturb.sh
+
+echo "Mode 'Ne pas déranger' activé."
+echo "Pour restaurer les paramètres normaux, exécutez: sudo /usr/local/bin/disable_no_disturb.sh"
 EOF
 
-# Rendre le script exécutable
-chmod +x ~/Desktop/24HLM/nodisturb.sh
+# Rendre le script no_disturb exécutable
+chmod +x /usr/local/bin/no_disturb.sh
 
-# Création du service systemd pour NoDisturb
-cat << EOF | sudo tee /etc/systemd/system/nodisturb.service
+# Créer un service systemd pour exécuter no_disturb au démarrage
+cat > /etc/systemd/system/no-disturb.service << EOF
 [Unit]
-Description=NoDisturb
-After=graphical.target
+Description=Mode Ne pas déranger
+After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/home/pha5e/Desktop/24HLM/nodisturb.sh
-RemainAfterExit=true
-User=pha5e
+ExecStart=/usr/local/bin/no_disturb.sh
+RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# Activation et démarrage du service
-sudo systemctl enable nodisturb.service
-sudo systemctl start nodisturb.service
+# Activer le service no-disturb
+systemctl enable no-disturb.service
+
+echo "Script NoDisturb installé et configuré pour s'exécuter au démarrage."
 
 # Clonage du dépôt GitHub
 #echo "====================================================="
