@@ -71,6 +71,7 @@ class KeyboardManager:
                 r, _, _ = select.select([sys.stdin], [], [], 0.1)
                 if r:
                     key = sys.stdin.read(1)
+                    print(f"Touche détectée: {key}")
                     if key in self.languages:
                         new_language = self.languages[key]
                         if new_language != self.current_language and new_language in VIDEOS:
