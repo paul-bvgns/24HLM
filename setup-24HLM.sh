@@ -267,12 +267,11 @@ cat << EOF > /home/pha5e/Desktop/24HLM.desktop
 [Desktop Entry]
 Name=24HLM Project
 Comment=Lancer le projet 24HLM
-Exec=sudo /home/pha5e/Desktop/run_24hlm.sh
+Exec=gksudo /home/pha5e/Desktop/run_24hlm.sh
 Icon=application-x-executable
 Terminal=true
 Type=Application
 Categories=Utility;
-X-GNOME-Autostart-enabled=true
 EOF
 
 # Donner les permissions d'exécution au fichier .desktop
