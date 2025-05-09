@@ -67,27 +67,12 @@ echo "Configuration du démarrage automatique du script 24HLM..."
 echo "====================================================="
 mkdir -p ~/.config/autostart
 
-# Création d'un script wrapper pour le lancement avec les bonnes permissions
-cat << EOF > /home/pha5e/Desktop/run_24hlm.sh
-#!/bin/bash
-while [ -z "$DISPLAY" ] || [ ! -d "/tmp/.X11-unix" ]; do
-  sleep 1
-done
-
-# Exécuter le script Python avec les bonnes permissions
-cd /home/pha5e/Desktop/24HLM/01.DEV/
-sudo -E python3 /home/pha5e/Desktop/24HLM/01.DEV/main.py
-EOF
-
-# Rendre le script wrapper exécutable
-chmod +x /home/pha5e/Desktop/run_24hlm.sh
-
 # Création du fichier de démarrage automatique
 cat << EOF > ~/.config/autostart/24HLM.desktop
 [Desktop Entry]
 Type=Application
 Name=24HLM Script
-Exec=lxterminal -e "sudo /home/pha5e/Desktop/run_24hlm.sh"
+Exec=lxterminal -e "sudo python3 /home/pha5e/Desktop/24HLM/01.DEV/main.py"
 X-GNOME-Autostart-enabled=true
 EOF
 
@@ -266,12 +251,13 @@ echo "====================================================="
 cat << EOF > /home/pha5e/Desktop/24HLM.desktop
 [Desktop Entry]
 Name=24HLM Project
-Comment=Lancer le projet 24HLM
-Exec=gksudo /home/pha5e/Desktop/run_24hlm.sh
+Comment=Lancer le projet 24HLM (Python)
+Exec=lxterminal -e "sudo python3 /home/pha5e/Desktop/24HLM/01.DEV/main.py"
 Icon=application-x-executable
 Terminal=true
 Type=Application
 Categories=Utility;
+X-GNOME-Autostart-enabled=true
 EOF
 
 # Donner les permissions d'exécution au fichier .desktop
