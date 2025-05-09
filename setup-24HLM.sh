@@ -245,6 +245,30 @@ systemctl enable no-disturb.service
 echo "Script NoDisturb installé et configuré pour s'exécuter au démarrage."
 
 
+# Création d'un raccourci sur le bureau pour lancer le projet
+echo "====================================================="
+echo "Création d'un raccourci sur le bureau..."
+echo "====================================================="
+
+# Créer un fichier .desktop sur le bureau
+cat << EOF > /home/pha5e/Desktop/24HLM.desktop
+[Desktop Entry]
+Name=24HLM Project
+Comment=Lancer le projet 24HLM
+Exec=sudo /home/pha5e/Desktop/run_24hlm.sh
+Icon=application-x-executable
+Terminal=true
+Type=Application
+Categories=Utility;
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Donner les permissions d'exécution au fichier .desktop
+chmod +x /home/pha5e/Desktop/24HLM.desktop
+
+# Message de confirmation
+echo "Le raccourci pour lancer 24HLM a été créé sur le bureau."
+
 # Message de fin
 echo "====================================================="
 echo "Configuration terminée avec succès!"
