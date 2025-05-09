@@ -158,15 +158,67 @@ class VideoPlayer:
                         raise StopIteration  # Quitte la lecture en boucle pour recharger
 
     def run(self):
-        try:
-            while self.running:
-                self.play_video(VIDEOS[self.current_language]["loop"], loop=True, fade=False)
-        except StopIteration:
-            self.run()
-        finally:
-            GPIO.cleanup()
-            pygame.quit()
-            print("[EXIT] Nettoyage terminé.")
+        loop_cap = cv2.VideoCapture(VIDEOS[self.current_language]["loop"])
+        overlay_cap = None
+        overlay_alpha = 0
+        overlay_fade_frames = 30
+        overlay_frame_count = 0
+        showing_overlay = False
+
+        while self.running:
+            # --- Lecture de la vidéo de boucle ---
+            ret, frame = loop_cap.read()
+            if not ret:
+                loop_cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                continue
+
+            frame = cv2.resize(frame, self.size)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            background = pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
+            background = pygame.transform.scale(background, self.size)
+
+            self.screen.blit(background, (0, 0))
+
+            # --- Gérer superposition si demandée ---
+            if self.overlay_requested and not showing_overlay:
+                print("[OVERLAY] Lecture vidéo temporaire...")
+                overlay_cap = cv2.VideoCapture(VIDEOS[self.current_language]["once"])
+                overlay_frame_count = 0
+                showing_overlay = True
+                self.overlay_requested = False
+
+            if showing_overlay and overlay_cap:
+                ret_o, frame_o = overlay_cap.read()
+                if not ret_o:
+                    overlay_cap.release()
+                    overlay_cap = None
+                    showing_overlay = False
+                    overlay_alpha = 0
+                else:
+                    frame_o = cv2.resize(frame_o, self.size)
+                    frame_o = cv2.cvtColor(frame_o, cv2.COLOR_BGR2RGB)
+                    overlay = pygame.surfarray.make_surface(np.flipud(np.rot90(frame_o)))
+                    overlay = pygame.transform.scale(overlay, self.size)
+
+                    # --- Fading ---
+                    total_frames = overlay_cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                    if overlay_frame_count < overlay_fade_frames:
+                        # Fade in
+                        overlay_alpha = int(255 * (overlay_frame_count / overlay_fade_frames))
+                    elif overlay_frame_count > total_frames - overlay_fade_frames:
+                        # Fade out
+                        overlay_alpha = int(255 * ((total_frames - overlay_frame_count) / overlay_fade_frames))
+                    else:
+                        overlay_alpha = 255
+
+                    overlay.set_alpha(max(0, min(255, overlay_alpha)))
+                    self.screen.blit(overlay, (0, 0))
+                    overlay_frame_count += 1
+
+            pygame.display.flip()
+            self.handle_events()
+            self.clock.tick(30)
+
 
 
 if __name__ == "__main__":
