@@ -24,7 +24,7 @@ sleep 5
 echo "====================================================="
 echo "Mise à jour des paquets système..."
 echo "====================================================="
-sudo apt update && sudo apt upgrade -y
+#sudo apt update && sudo apt upgrade -y
 
 # Installation des dépendances Python
 echo ""
