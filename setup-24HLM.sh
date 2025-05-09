@@ -14,6 +14,7 @@ echo "- Clone du dépôt GitHub"
 echo "- Configuration du SSH"
 echo "- Configuration du démarrage automatique"
 echo "- Configuration du mode NoDisturb"
+echo "- Personnalisation du bureau"
 echo ""
 echo "Le processus démarrera dans 5 secondes..."
 echo ""
@@ -281,6 +282,16 @@ chmod +x /home/pha5e/Desktop/24HLM.desktop
 
 # Message de confirmation
 echo "Le raccourci pour lancer 24HLM a été créé sur le bureau."
+
+
+echo ""
+echo ""
+echo "====================================================="
+echo "Personnalisation du bureau..."
+echo "====================================================="
+
+# wallpaper
+pcmanfm --set-wallpaper /home/pha5e/24HLM/00.RESSOURCES/wallpaper.png --wallpaper-mode=fit
 
 # Message de fin
 echo ""
