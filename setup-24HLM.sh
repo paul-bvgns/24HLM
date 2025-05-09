@@ -72,7 +72,7 @@ cat << EOF > ~/.config/autostart/24HLM.desktop
 [Desktop Entry]
 Type=Application
 Name=24HLM Script
-Exec=lxterminal -e "sudo python3 /home/pha5e/Desktop/24HLM/01.DEV/main.py"
+Exec=lxterminal -e "sudo /home/pha5e/Desktop/run_24hlm.sh"
 X-GNOME-Autostart-enabled=true
 EOF
 
