@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-import pygame
-import cv2
-import numpy as np
-import RPi.GPIO as GPIO
-import threading
-import time
-from config import *
-
 class VideoPlayer:
     def __init__(self):
         pygame.init()
@@ -21,6 +10,7 @@ class VideoPlayer:
         self.current_language = DEFAULT_LANGUAGE
         self.running = True
         self.overlay_requested = False
+        self.video_playing = False  # Ajout d'une variable pour vérifier si une vidéo est en cours
 
         print("Touches : 1=FR, 2=IT, 3=DE, 4=EN, 0=vidéo temporaire, q=quitter")
 
@@ -46,7 +36,7 @@ class VideoPlayer:
 
     def gpio_button_loop(self):
         while self.running:
-            if GPIO.input(BUTTON_PIN) == GPIO.HIGH:
+            if GPIO.input(BUTTON_PIN) == GPIO.HIGH and not self.video_playing:
                 print("[GPIO] Bouton appuyé")
                 self.overlay_requested = True
                 time.sleep(0.5)
@@ -66,7 +56,7 @@ class VideoPlayer:
                 if dt != clk:
                     count += 1
                     print(f"[ENCODER] Rotation détectée : {count}")
-                    if count >= ENCODER_THRESHOLD:
+                    if count >= ENCODER_THRESHOLD and not self.video_playing:
                         print("[ENCODER] Seuil atteint. Lancement vidéo temporaire.")
                         self.overlay_requested = True
                         count = 0
@@ -79,9 +69,12 @@ class VideoPlayer:
             time.sleep(0.01)
 
     def play_video(self, path, loop=False):
+        self.video_playing = True  # On commence à lire la vidéo
+
         cap = cv2.VideoCapture(path)
         if not cap.isOpened():
             print(f"[ERREUR] Impossible d'ouvrir : {path}")
+            self.video_playing = False  # On réinitialise dès qu'on sort de la lecture
             return
 
         print(f"[VIDÉO] Lecture : {path}")
@@ -110,6 +103,7 @@ class VideoPlayer:
             self.clock.tick(30)
 
         cap.release()
+        self.video_playing = False  # La vidéo est terminée, réinitialisation du verrou
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -121,10 +115,10 @@ class VideoPlayer:
                 if key == 'q':
                     print("[EXIT] Quitter")
                     self.running = False
-                elif key == '0':
+                elif key == '0' and not self.video_playing:
                     print("[ACTION] Touche 0 → vidéo temporaire")
                     self.overlay_requested = True
-                elif key in {'1', '2', '3', '4'}:
+                elif key in {'1', '2', '3', '4'} and not self.video_playing:
                     lang_map = {'1': 'fr', '2': 'it', '3': 'de', '4': 'en'}
                     new_lang = lang_map[key]
                     if new_lang != self.current_language:
@@ -142,8 +136,3 @@ class VideoPlayer:
             GPIO.cleanup()
             pygame.quit()
             print("[EXIT] Nettoyage terminé.")
-
-
-if __name__ == "__main__":
-    player = VideoPlayer()
-    player.run()
