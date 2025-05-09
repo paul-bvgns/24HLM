@@ -62,6 +62,9 @@ def start_loop():
         "--vf=format=rgba",
         "--no-keepaspect",
         "--deinterlace=no"
+        "--input-default-bindings=no" 
+        "--no-input-terminal"
+
     ]
     
     current_loop_proc = subprocess.Popen(args)
@@ -85,6 +88,8 @@ def play_overlay():
         "--geometry=0:0",
         "--alpha=yes",
         "--vf=format=rgba,fade=t=in:st=0:d=1,fade=t=out:st=5:d=1"
+        "--input-default-bindings=no"
+        "--no-input-terminal"
     ]
     
     subprocess.run(args)
