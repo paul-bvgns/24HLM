@@ -72,7 +72,7 @@ cat << EOF > ~/.config/autostart/24HLM.desktop
 [Desktop Entry]
 Type=Application
 Name=24HLM Script
-Exec=lxterminal -e "sudo /home/pha5e/Desktop/run_24hlm.sh"
+Exec=lxterminal -e "sudo /home/pha5e/run_24hlm.sh"
 X-GNOME-Autostart-enabled=true
 EOF
 
@@ -84,7 +84,7 @@ echo "Configuration du mode NoDisturb..."
 echo "====================================================="
 
 # Création du script no_disturb.sh
-cat > /home/pha5e/Desktop/no_disturb.sh << 'EOF'
+cat > /home/pha5e/no_disturb.sh << 'EOF'
 #!/bin/bash
 
 # Script mode "Ne pas déranger" pour Raspberry Pi
@@ -152,7 +152,7 @@ systemctl disable triggerhappy.service
 echo "Services non essentiels désactivés."
 
 # Créer un script de restauration
-cat > /home/pha5e/Desktop/disable_no_disturb.sh << 'INNEREOF'
+cat > /home/pha5e/disable_no_disturb.sh << 'INNEREOF'
 #!/bin/bash
 
 # Script de restauration - désactive le mode "Ne pas déranger"
@@ -210,14 +210,14 @@ echo "Mode 'Ne pas déranger' désactivé. Tous les services sont restaurés."
 INNEREOF
 
 # Rendre le script de restauration exécutable
-chmod +x /home/pha5e/Desktop/disable_no_disturb.sh
+chmod +x /home/pha5e/disable_no_disturb.sh
 
 echo "Mode 'Ne pas déranger' activé."
-echo "Pour restaurer les paramètres normaux, exécutez: sudo /home/pha5e/Desktop/disable_no_disturb.sh"
+echo "Pour restaurer les paramètres normaux, exécutez: sudo /home/pha5e/disable_no_disturb.sh"
 EOF
 
 # Rendre le script no_disturb exécutable
-chmod +x /home/pha5e/Desktop/no_disturb.sh
+chmod +x /home/pha5e/no_disturb.sh
 
 # Créer un service systemd pour exécuter no_disturb au démarrage
 cat > /etc/systemd/system/no-disturb.service << EOF
@@ -227,7 +227,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/home/pha5e/Desktop/no_disturb.sh
+ExecStart=/home/pha5e/no_disturb.sh
 RemainAfterExit=yes
 
 [Install]
@@ -252,7 +252,7 @@ cat << EOF > /home/pha5e/Desktop/24HLM.desktop
 [Desktop Entry]
 Name=24HLM Project
 Comment=Lancer le projet 24HLM (Python)
-Exec=lxterminal -e "sudo python3 /home/pha5e/Desktop/24HLM/01.DEV/main.py"
+Exec=lxterminal -e "sudo python3 /home/pha5e/24HLM/01.DEV/main.py"
 Icon=application-x-executable
 Terminal=true
 Type=Application
