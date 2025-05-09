@@ -106,11 +106,11 @@ systemctl disable bluetooth.service
 echo "Bluetooth désactivé."
 
 # Désactiver le Wi-Fi
-echo "Désactivation du Wi-Fi..."
-rfkill block wifi
-systemctl stop wpa_supplicant.service
-systemctl disable wpa_supplicant.service
-echo "Wi-Fi désactivé."
+#echo "Désactivation du Wi-Fi..."
+#rfkill block wifi
+#systemctl stop wpa_supplicant.service
+#systemctl disable wpa_supplicant.service
+#echo "Wi-Fi désactivé."
 
 
 # Désactiver les mises à jour automatiques
