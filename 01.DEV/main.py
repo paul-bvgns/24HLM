@@ -72,12 +72,14 @@ class VideoPlayer:
             time.sleep(0.01)
 
     def play_video(self, path, loop=False):
-        self.video_playing = True  # On commence à lire la vidéo
+
+        if self.overlay_requested:
+            self.video_playing = True  # On commence à lire la vidéo
 
         cap = cv2.VideoCapture(path)
         if not cap.isOpened():
             print(f"[ERREUR] Impossible d'ouvrir : {path}")
-            self.video_playing = False  # On réinitialise dès qu'on sort de la lecture
+            self.video_playing = False
             return
 
         print(f"[VIDÉO] Lecture : {path}")
