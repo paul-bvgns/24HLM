@@ -73,7 +73,7 @@ done
 
 # Exécuter le script Python avec les bonnes permissions
 cd /home/pha5e/Desktop/24HLM/01.DEV/
-sudo python3 /home/pha5e/Desktop/24HLM/01.DEV/main.py
+sudo -E python3 /home/pha5e/Desktop/24HLM/01.DEV/main.py
 EOF
 
 # Rendre le script wrapper exécutable
