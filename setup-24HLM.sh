@@ -16,6 +16,8 @@ echo "- Configuration du démarrage automatique"
 echo "- Configuration du mode NoDisturb"
 echo ""
 echo "Le processus démarrera dans 5 secondes..."
+echo ""
+echo ""
 sleep 5
 
 # Mise à jour des paquets
@@ -25,6 +27,8 @@ echo "====================================================="
 sudo apt update && sudo apt upgrade -y
 
 # Installation des dépendances Python
+echo ""
+echo ""
 echo "====================================================="
 echo "Installation des dépendances Python..."
 echo "====================================================="
@@ -32,6 +36,8 @@ sudo apt install -y python3-pip python3-dev python3-opencv python3-pygame python
 
 
 # Configuration SSH
+echo ""
+echo ""
 echo "====================================================="
 echo "Configuration du SSH..."
 echo "====================================================="
@@ -54,6 +60,8 @@ sudo passwd -d pha5e
 sudo systemctl restart ssh
 
 # Création du dossier autostart
+echo ""
+echo ""
 echo "====================================================="
 echo "Configuration du démarrage automatique du script 24HLM..."
 echo "====================================================="
@@ -72,7 +80,7 @@ sudo -E python3 /home/pha5e/Desktop/24HLM/01.DEV/main.py
 EOF
 
 # Rendre le script wrapper exécutable
-chmod +x /usr/local/bin/run_24hlm.sh
+chmod +x /home/pha5e/Desktop/run_24hlm.sh
 
 # Création du fichier de démarrage automatique
 cat << EOF > ~/.config/autostart/24HLM.desktop
@@ -84,6 +92,8 @@ X-GNOME-Autostart-enabled=true
 EOF
 
 # Configuration du mode NoDisturb
+echo ""
+echo ""
 echo "====================================================="
 echo "Configuration du mode NoDisturb..."
 echo "====================================================="
@@ -246,6 +256,8 @@ echo "Script NoDisturb installé et configuré pour s'exécuter au démarrage."
 
 
 # Création d'un raccourci sur le bureau pour lancer le projet
+echo ""
+echo ""
 echo "====================================================="
 echo "Création d'un raccourci sur le bureau..."
 echo "====================================================="
@@ -270,6 +282,8 @@ chmod +x /home/pha5e/Desktop/24HLM.desktop
 echo "Le raccourci pour lancer 24HLM a été créé sur le bureau."
 
 # Message de fin
+echo ""
+echo ""
 echo "====================================================="
 echo "Configuration terminée avec succès!"
 echo "====================================================="
