@@ -64,12 +64,26 @@ echo "Configuration du démarrage automatique du script 24HLM..."
 echo "====================================================="
 mkdir -p ~/.config/autostart
 
+# Création d'un script wrapper pour le lancement avec les bonnes permissions
+cat << EOF > /home/pha5e/Desktop/run_24hlm.sh
+#!/bin/bash
+# Attendre que l'environnement graphique soit complètement chargé
+sleep 10
+
+# Exécuter le script Python avec les bonnes permissions
+cd /home/pha5e/Desktop/24HLM/01.DEV/
+sudo python3 /home/pha5e/Desktop/24HLM/01.DEV/main.py
+EOF
+
+# Rendre le script wrapper exécutable
+chmod +x /usr/local/bin/run_24hlm.sh
+
 # Création du fichier de démarrage automatique
 cat << EOF > ~/.config/autostart/24HLM.desktop
 [Desktop Entry]
 Type=Application
 Name=24HLM Script
-Exec=python3 /home/pha5e/Desktop/24HLM/01.DEV/main.py
+Exec=lxterminal -e "sudo /home/pha5e/Desktop/run_24hlm.sh"
 X-GNOME-Autostart-enabled=true
 EOF
 
