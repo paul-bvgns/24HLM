@@ -64,7 +64,6 @@ def start_loop():
         "--deinterlace=no",
         "--input-default-bindings=no",
         "--no-input-terminal",
-        "--no-focus"  # Evite de forcer le focus
 
     ]
     
@@ -91,7 +90,6 @@ def play_overlay():
         "--vf=format=rgba,fade=t=in:st=0:d=1,fade=t=out:st=5:d=1",
         "--input-default-bindings=no",
         "--no-input-terminal",
-        "--no-focus"  # Evite de forcer le focus
     ]
     
     subprocess.run(args)
