@@ -32,7 +32,7 @@ echo ""
 echo "====================================================="
 echo "Installation des dépendances Python..."
 echo "====================================================="
-sudo apt install -y python3-pip python3-dev python3-opencv python3-pygame python3-numpy python3-rpi.gpio
+sudo apt install -y python3-pip python3-dev python3-opencv python3-pygame python3-numpy python3-gpiozero
 
 
 # Configuration SSH
