@@ -9,7 +9,7 @@ echo "    Configuration automatique Raspberry Pi 24HLM"
 echo "====================================================="
 echo ""
 echo "Ce script va configurer votre Raspberry Pi pour le projet 24HLM:"
-echo "- Installation de MPV"
+echo "- Installation des dépendances Python"
 echo "- Clone du dépôt GitHub"
 echo "- Configuration du SSH"
 echo "- Configuration du démarrage automatique"
@@ -24,17 +24,12 @@ echo "Mise à jour des paquets système..."
 echo "====================================================="
 sudo apt update && sudo apt upgrade -y
 
-# Clonage du dépôt GitHub
-#echo "====================================================="
-#echo "Clone du dépôt GitHub 24HLM..."
-#echo "====================================================="
-#git clone https://github.com/paul-bvgns/24HLM.git 24HLM
+# Installation des dépendances Python
+echo "====================================================="
+echo "Installation des dépendances Python..."
+echo "====================================================="
+sudo apt install -y python3-pip python3-dev python3-opencv python3-pygame python3-numpy python3-rpi.gpio
 
-# Installation de MPV
-echo "====================================================="
-echo "Installation de MPV..."
-echo "====================================================="
-sudo apt install -y mpv
 
 # Configuration SSH
 echo "====================================================="
@@ -88,7 +83,7 @@ Exec=lxterminal -e "sudo /home/pha5e/Desktop/run_24hlm.sh"
 X-GNOME-Autostart-enabled=true
 EOF
 
-# Création du mode NoDisturb
+# Configuration du mode NoDisturb
 echo "====================================================="
 echo "Configuration du mode NoDisturb..."
 echo "====================================================="
