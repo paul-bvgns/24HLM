@@ -293,6 +293,27 @@ echo "====================================================="
 # wallpaper
 pcmanfm --set-wallpaper /home/pha5e/24HLM/00.RESSOURCES/wallpaper.png --wallpaper-mode=fit
 
+# cree un raccourci sur le bureau pour la loop de secour
+cat << EOF > /home/pha5e/Desktop/24HLM_SEC.desktop
+[Desktop Entry]
+Name=24HLM SEC
+Comment=Lancer le projet 24HLM (Python)
+Exec=lxterminal -e "vlc  --loop --fullscreen --no-video-title-show --quiet --intf dummy /home/pha5e/24HLM/01.DEV/videos/it/loop-video.mp4"
+Icon=application-x-executable
+Terminal=true
+Type=Application
+Categories=Utility;
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Donner les permissions d'exécution au fichier .desktop
+chmod +x /home/pha5e/Desktop/24HLM_SEC.desktop
+
+# Suppression de l'icône de la corbeille
+gsettings set org.gnome.desktop.background show-desktop-icons false
+gsettings set org.gnome.shell.extensions.dash-to-dock show-trash false
+
+
 # Message de fin
 echo ""
 echo ""
