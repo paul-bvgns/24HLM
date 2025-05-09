@@ -84,6 +84,14 @@ Exec=lxterminal -e "sudo /home/pha5e/run_24hlm.sh"
 X-GNOME-Autostart-enabled=true
 EOF
 
+# Création du script run_24hlm.sh
+cat << EOF > /home/pha5e/run_24hlm.sh
+#!/bin/bash
+
+sudo python3 /home/pha5e/24HLM/01.DEV/main.py
+
+
+
 # Configuration du mode NoDisturb
 echo ""
 echo ""
