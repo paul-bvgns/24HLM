@@ -21,9 +21,9 @@ echo ""
 sleep 5
 
 # Mise à jour des paquets
-echo "====================================================="
-echo "Mise à jour des paquets système..."
-echo "====================================================="
+#echo "====================================================="
+#echo "Mise à jour des paquets système..."
+#echo "====================================================="
 #sudo apt update && sudo apt upgrade -y
 
 # Installation des dépendances Python
@@ -34,6 +34,14 @@ echo "Installation des dépendances Python..."
 echo "====================================================="
 sudo apt install -y python3-pip python3-dev python3-opencv python3-pygame python3-numpy python3-gpiozero
 
+
+echo ""
+echo ""
+echo "====================================================="
+echo "Clonage du dépôt GitHub..."
+echo "====================================================="
+git clone https://github.com/paul-bvgns/24HLM.git 24HLM
+echo "Dépôt cloné dans le répertoire 24HLM."
 
 # Configuration SSH
 echo ""
