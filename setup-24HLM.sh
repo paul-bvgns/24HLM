@@ -10,6 +10,7 @@ echo "====================================================="
 echo ""
 echo "Ce script va configurer votre Raspberry Pi pour le projet 24HLM:"
 echo "- Installation de MPV"
+echo "- Clone du dépôt GitHub"
 echo "- Configuration du SSH"
 echo "- Configuration du démarrage automatique"
 echo "- Configuration du mode NoDisturb"
@@ -22,6 +23,12 @@ echo "====================================================="
 echo "Mise à jour des paquets système..."
 echo "====================================================="
 sudo apt update && sudo apt upgrade -y
+
+# Clonage du dépôt GitHub
+#echo "====================================================="
+#echo "Clone du dépôt GitHub 24HLM..."
+#echo "====================================================="
+#git clone https://github.com/paul-bvgns/24HLM.git 24HLM
 
 # Installation de MPV
 echo "====================================================="
@@ -226,12 +233,6 @@ EOF
 systemctl enable no-disturb.service
 
 echo "Script NoDisturb installé et configuré pour s'exécuter au démarrage."
-
-# Clonage du dépôt GitHub
-#echo "====================================================="
-#echo "Clone du dépôt GitHub 24HLM..."
-#echo "====================================================="
-#git clone https://github.com/paul-bvgns/24HLM.git 24HLM
 
 
 # Message de fin
