@@ -107,7 +107,7 @@ class VideoPlayer:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
                 key = event.unicode
-                if key == 'q':
+                if key == '-':
                     print("[EXIT] Quitter")
                     self.running = False
                 elif key == '0' and not self.overlay_playing:

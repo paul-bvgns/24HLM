@@ -77,6 +77,8 @@ echo "====================================================="
 mkdir -p ~/.config/autostart
 
 # Création du fichier de démarrage automatique
+
+mkdir -p ~/.config/autostart
 cat << EOF > ~/.config/autostart/24HLM.desktop
 [Desktop Entry]
 Type=Application
@@ -90,6 +92,24 @@ cat << EOF > /home/pha5e/run_24hlm.sh
 #!/bin/bash
 
 sudo python3 /home/pha5e/24HLM/01.DEV/main.py
+EOF
+
+echo ""
+echo ""
+echo "====================================================="
+echo "Configuration des raccourcis..."
+echo "====================================================="
+cat << EOF > ~/.config/labwc/rc.xml
+<labwc_config>
+  <keyboard>
+    <keybind key="KP_Divide">
+      <action name="Execute">
+        <command>lxterminal -e "sudo /home/pha5e/run_24hlm.sh"</command>
+      </action>
+    </keybind>
+  </keyboard>
+</labwc_config>
+EOF
 
 
 
