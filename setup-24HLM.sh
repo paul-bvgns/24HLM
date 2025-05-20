@@ -79,6 +79,7 @@ mkdir -p ~/.config/autostart
 # Création du fichier de démarrage automatique
 
 mkdir -p ~/.config/autostart
+touch ~/.config/autostart/24HLM.desktop
 cat << EOF > ~/.config/autostart/24HLM.desktop
 [Desktop Entry]
 Type=Application
@@ -99,6 +100,7 @@ echo ""
 echo "====================================================="
 echo "Configuration des raccourcis..."
 echo "====================================================="
+touch ~/.config/labwc/rc.xml
 cat << EOF > ~/.config/labwc/rc.xml
 <labwc_config>
   <keyboard>
