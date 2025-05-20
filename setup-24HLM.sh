@@ -97,13 +97,18 @@ echo ""
 echo "====================================================="
 echo "Configuration des raccourcis..."
 echo "====================================================="
-cat << EOF | sudo tee ~/.config/autostart/24HLM.desktop > /dev/null
-[Desktop Entry]
-Type=Application
-Name=24HLM Script
-Exec=lxterminal -e "sudo /home/pha5e/run_24hlm.sh"
-X-GNOME-Autostart-enabled=true
+cat << EOF | sudo tee ~/.config/labwc/rc.xml > /dev/null
+<labwc_config>
+  <keyboard>
+    <keybind key="KP_Divide">
+      <action name="Execute">
+        <command>lxterminal -e "sudo /home/pha5e/run_24hlm.sh"</command>
+      </action>
+    </keybind>
+  </keyboard>
+</labwc_config>
 EOF
+
 
 
 
