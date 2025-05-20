@@ -77,8 +77,7 @@ echo "====================================================="
 # Création du fichier de démarrage automatique
 
 mkdir -p ~/.config/autostart
-sudo touch ~/.config/autostart/24HLM.desktop
-cat << EOF > ~/.config/autostart/24HLM.desktop
+cat << EOF | sudo tee ~/.config/autostart/24HLM.desktop > /dev/null
 [Desktop Entry]
 Type=Application
 Name=24HLM Script
@@ -98,17 +97,12 @@ echo ""
 echo "====================================================="
 echo "Configuration des raccourcis..."
 echo "====================================================="
-sudo touch ~/.config/labwc/rc.xml
-cat << EOF > ~/.config/labwc/rc.xml
-<labwc_config>
-  <keyboard>
-    <keybind key="KP_Divide">
-      <action name="Execute">
-        <command>lxterminal -e "sudo /home/pha5e/run_24hlm.sh"</command>
-      </action>
-    </keybind>
-  </keyboard>
-</labwc_config>
+cat << EOF | sudo tee ~/.config/autostart/24HLM.desktop > /dev/null
+[Desktop Entry]
+Type=Application
+Name=24HLM Script
+Exec=lxterminal -e "sudo /home/pha5e/run_24hlm.sh"
+X-GNOME-Autostart-enabled=true
 EOF
 
 
