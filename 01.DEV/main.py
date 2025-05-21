@@ -16,6 +16,7 @@ class VideoPlayer:
         self.size = (self.screen_info.current_w, self.screen_info.current_h)
         self.screen = pygame.display.set_mode(self.size, pygame.FULLSCREEN)
         pygame.display.set_caption("Lecteur vidéo")
+        pygame.mouse.set_visible(False)
 
         self.clock = pygame.time.Clock()
         self.current_language = DEFAULT_LANGUAGE
