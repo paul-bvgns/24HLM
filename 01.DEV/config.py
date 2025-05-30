@@ -11,6 +11,14 @@ MODE = "button"
 # Seuil pour l'encodeur rotatif
 ENCODER_THRESHOLD = 90
 
+# Nombre de secondes pour réinitialiser l'encodeur après une rotation
+ENCODER_RESET_TIMEOUT = 3
+
+# Nombre de pressions de bouton pour lancer la vidéo temporaire
+BUTTON_PRESS_THRESHOLD = 3
+
+BUTTON_RESET_TIMEOUT = 5
+
 # Configuration des broches GPIO
 BUTTON_PIN = 17
 CLK_PIN = 21
@@ -43,6 +51,3 @@ DEFAULT_LANGUAGE = "fr"
 # Pour la rétrocompatibilité
 VIDEO_LOOP = VIDEOS[DEFAULT_LANGUAGE]["loop"]
 VIDEO_ONCE = VIDEOS[DEFAULT_LANGUAGE]["once"]
-
-# Paramètres pour la réinitialisation de l'encodeur
-ENCODER_RESET_TIMEOUT = 3  # secondes

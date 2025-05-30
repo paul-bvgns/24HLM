@@ -28,26 +28,48 @@ class VideoPlayer:
 
         # Setup GPIO
         self.encoder_counter = 0
+        self.button_counter = 0
         self.last_rotation_time = time.time()
+        self.last_button_time = time.time()
         self.setup_gpio()
 
     def setup_gpio(self):
         if MODE == "button":
             self.button = Button(BUTTON_PIN)
             self.button.when_pressed = self.on_button_press
+
+            # Lancement d'un thread pour reset du bouton après timeout
+            thread = threading.Thread(target=self.button_timeout_loop)
+            thread.daemon = True
+            thread.start()
+
         elif MODE == "encoder":
             self.encoder = RotaryEncoder(CLK_PIN, DT_PIN)
             self.encoder.when_rotated = self.on_encoder_rotate
 
-            # Lancement d’un thread pour reset après timeout
+            # Lancement d'un thread pour reset après timeout
             thread = threading.Thread(target=self.encoder_timeout_loop)
             thread.daemon = True
             thread.start()
 
     def on_button_press(self):
         if not self.overlay_playing:
-            print("[GPIOZERO] Bouton appuyé")
-            self.overlay_requested = True
+            self.button_counter += 1
+            self.last_button_time = time.time()
+            print(f"[BUTTON] Clic détecté : {self.button_counter}/{BUTTON_PRESS_THRESHOLD}")
+
+            if self.button_counter >= BUTTON_PRESS_THRESHOLD:
+                print("[BUTTON] clics atteints. Lancement vidéo temporaire.")
+                self.overlay_requested = True
+                self.button_counter = 0
+
+    def button_timeout_loop(self):
+        while self.running:
+            if (time.time() - self.last_button_time > BUTTON_RESET_TIMEOUT and
+                    self.button_counter != 0):
+                print("[BUTTON] Inactivité détectée. Reset des clics.")
+                self.button_counter = 0
+            time.sleep(0.1)
 
     def on_encoder_rotate(self):
         if not self.overlay_playing:
