@@ -24,6 +24,12 @@ class VideoPlayer:
         self.overlay_requested = False
         self.overlay_playing = False
 
+        # Configuration de la barre de progression
+        self.progress_bar_width = 20
+        self.progress_bar_height = self.size[1] - 40  # Hauteur avec marge
+        self.progress_bar_x = 20  # Position à gauche
+        self.progress_bar_y = 20  # Position du haut
+
         print("Touches : 1=FR, 2=IT, 3=DE, 4=EN, 0=vidéo temporaire, q=quitter")
 
         # Setup GPIO
@@ -51,6 +57,45 @@ class VideoPlayer:
             thread = threading.Thread(target=self.encoder_timeout_loop)
             thread.daemon = True
             thread.start()
+
+    def draw_progress_bar(self):
+        """Dessine la barre de progression rouge à gauche de l'écran"""
+        # Fond de la barre (gris foncé)
+        background_rect = pygame.Rect(
+            self.progress_bar_x - 2,
+            self.progress_bar_y - 2,
+            self.progress_bar_width + 4,
+            self.progress_bar_height + 4
+        )
+        pygame.draw.rect(self.screen, (40, 40, 40), background_rect)
+
+        # Barre vide (gris clair)
+        empty_rect = pygame.Rect(
+            self.progress_bar_x,
+            self.progress_bar_y,
+            self.progress_bar_width,
+            self.progress_bar_height
+        )
+        pygame.draw.rect(self.screen, (100, 100, 100), empty_rect)
+
+        # Calcul du pourcentage de progression
+        if MODE == "button":
+            progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
+        elif MODE == "encoder":
+            progress = min(self.encoder_counter / ENCODER_THRESHOLD, 1.0)
+        else:
+            progress = 0
+
+        # Barre remplie (rouge)
+        if progress > 0:
+            filled_height = int(self.progress_bar_height * progress)
+            filled_rect = pygame.Rect(
+                self.progress_bar_x,
+                self.progress_bar_y + self.progress_bar_height - filled_height,
+                self.progress_bar_width,
+                filled_height
+            )
+            pygame.draw.rect(self.screen, (255, 0, 0), filled_rect)
 
     def on_button_press(self):
         if not self.overlay_playing:
@@ -109,6 +154,10 @@ class VideoPlayer:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             surface = pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
             self.screen.blit(surface, (0, 0))
+
+            # Dessiner la barre de progression par-dessus la vidéo
+            self.draw_progress_bar()
+
             pygame.display.flip()
 
             self.handle_events()
