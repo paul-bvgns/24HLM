@@ -12,7 +12,7 @@ MODE = "button"
 ENCODER_THRESHOLD = 90
 
 # Nombre de secondes pour réinitialiser l'encodeur après une rotation
-ENCODER_RESET_TIMEOUT = 3
+ENCODER_RESET_TIMEOUT = 5
 
 # Nombre de pressions de bouton pour lancer la vidéo temporaire
 BUTTON_PRESS_THRESHOLD = 3
