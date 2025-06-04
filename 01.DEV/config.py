@@ -28,7 +28,8 @@ VIDEOS = {
     "fr": {
         "loop": "/home/pha5e/24HLM/01.DEV/videos/fr/loop.mp4",
         "action": "/home/pha5e/24HLM/01.DEV/videos/fr/action.mp4",
-        "learn": "/home/pha5e/24HLM/01.DEV/videos/fr/learn.mp4"
+        "learn": "/home/pha5e/24HLM/01.DEV/videos/fr/learn.mp4",
+        "image": "/home/pha5e/24HLM/01.DEV/videos/fr/image.png",
     },
     "it": {
         "loop": "/home/pha5e/24HLM/01.DEV/videos/it/loop-video.mp4",

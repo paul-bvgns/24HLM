@@ -43,13 +43,8 @@ class VideoPlayer:
         self.progress_bar_x = 20
         self.progress_bar_y = 20
 
-        self.font_size = 100
-        self.font = pygame.font.Font(None, self.font_size)
-        self.text_content = "CONTINUE DE TOURNER !"
-        self.text_color = (255, 255, 255)
-        self.text_surface = self.font.render(self.text_content, True, self.text_color)
-        self.text_rect = self.text_surface.get_rect()
-        self.text_rect.centerx = self.size[0] // 2
+        # Charger l'image PNG au lieu du texte
+        self.load_text_image()
 
         print("Touches : 1=FR, 2=IT, 3=DE, 4=EN, 0=vidéo temporaire, q=quitter")
 
@@ -68,6 +63,34 @@ class VideoPlayer:
         self.current_frame_loop = None
         self.current_frame_action = None
         self.current_frame_learn = None
+
+    def load_text_image(self):
+        """Charge l'image PNG pour remplacer le texte"""
+        try:
+            # Charger l'image PNG
+            # Vous pouvez spécifier le chemin de votre image ici selon la langue depuis la config
+            image_path = VIDEOS[self.current_language]["image"]
+            self.text_image = pygame.image.load(image_path).convert_alpha()
+
+            # Optionnel : redimensionner l'image si nécessaire
+            # Vous pouvez ajuster ces dimensions selon vos besoins
+            desired_width = 800  # Largeur souhaitée
+            desired_height = 200  # Hauteur souhaitée
+            self.text_image = pygame.transform.scale(self.text_image, (desired_width, desired_height))
+
+            # Calculer la position pour centrer l'image
+            self.text_rect = self.text_image.get_rect()
+            self.text_rect.centerx = self.size[0] // 2
+
+            print(f"[IMAGE] Image chargée : {image_path}")
+
+        except pygame.error as e:
+            print(f"[ERREUR] Impossible de charger l'image : {e}")
+            # Fallback : créer une surface de couleur en cas d'erreur
+            self.text_image = pygame.Surface((400, 100))
+            self.text_image.fill((255, 255, 255))  # Surface blanche
+            self.text_rect = self.text_image.get_rect()
+            self.text_rect.centerx = self.size[0] // 2
 
     def setup_gpio(self):
         if MODE == "button":
@@ -134,7 +157,7 @@ class VideoPlayer:
         """Affiche la barre de progression seulement en mode action"""
         return  # Commenté pour éviter l'affichage de la barre de progression en mode action
         #if self.state != "action":
-           # return
+        # return
 
         background_rect = pygame.Rect(
             self.progress_bar_x - 2,
@@ -162,20 +185,20 @@ class VideoPlayer:
             )
             pygame.draw.rect(self.screen, (255, 0, 0), filled_rect)
 
-    def draw_sliding_text(self):
-        """Affiche le texte qui slide seulement en mode action"""
+    def draw_sliding_image(self):
+        """Affiche l'image qui slide seulement en mode action"""
         if self.state == "action" and self.current_slide_offset > 0:
-            text_y = self.current_slide_offset - self.text_rect.height - 60
+            image_y = self.current_slide_offset - self.text_rect.height - 60
             center_y = self.size[1] // 2 - self.text_rect.height // 2
-            text_y = min(text_y, center_y)
+            image_y = min(image_y, center_y)
 
-            text_position = (
+            image_position = (
                 self.text_rect.centerx - self.text_rect.width // 2,
-                text_y
+                image_y
             )
 
-            if text_y + self.text_rect.height > 0:
-                self.screen.blit(self.text_surface, text_position)
+            if image_y + self.text_rect.height > 0:
+                self.screen.blit(self.text_image, image_position)
 
     def on_button_press(self):
         if self.state in ["loop", "action"]:
@@ -299,7 +322,7 @@ class VideoPlayer:
                 # Appliquer le slide uniquement en mode action
                 self.screen.fill((0, 0, 0))
                 self.screen.blit(surface_to_render, (0, self.current_slide_offset))
-                self.draw_sliding_text()
+                self.draw_sliding_image()  # Utiliser l'image au lieu du texte
             else:
                 # Affichage normal
                 self.screen.blit(surface_to_render, (0, 0))
