@@ -61,22 +61,13 @@ class VideoPlayer:
         self.interaction_detected = False
         self.setup_gpio()
 
-        # Vidéos - OPTIMISATION : Préconfiguration des codecs
+        # Vidéos
         self.loop_cap = None
         self.action_cap = None
         self.learn_cap = None
         self.current_frame_loop = None
         self.current_frame_action = None
         self.current_frame_learn = None
-
-        # Cache pour les surfaces converties
-        self.surface_cache = {}
-        self.cache_size_limit = 10  # Limiter le cache pour éviter la surconsommation mémoire
-
-        # Variables de timing pour la synchronisation
-        self.target_fps = 30
-        self.frame_time = 1.0 / self.target_fps
-        self.last_frame_time = time.time()
 
     def setup_gpio(self):
         if MODE == "button":
@@ -91,28 +82,6 @@ class VideoPlayer:
             thread = threading.Thread(target=self.encoder_timeout_loop)
             thread.daemon = True
             thread.start()
-
-    def setup_video_capture(self, video_path):
-        """Configure une capture vidéo avec les paramètres optimaux"""
-        cap = cv2.VideoCapture(video_path)
-        if cap.isOpened():
-            # OPTIMISATION : Configuration des buffers pour réduire la latence
-            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Buffer minimal
-
-            # Essayer d'optimiser le codec si possible
-            fourcc = cap.get(cv2.CAP_PROP_FOURCC)
-            fps = cap.get(cv2.CAP_PROP_FPS)
-
-            print(f"[VIDEO] Ouverture: {video_path}")
-            print(f"[VIDEO] FPS original: {fps}, Codec: {int(fourcc)}")
-
-            # Pour la vidéo learn, on peut précharger quelques frames si nécessaire
-            if "learn" in video_path.lower():
-                # Vérifier que la vidéo n'est pas corrompue
-                total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-                print(f"[VIDEO] Vidéo learn - Total frames: {total_frames}")
-
-        return cap
 
     def calculate_interaction_progress(self):
         if MODE == "button":
@@ -257,68 +226,38 @@ class VideoPlayer:
         self.interaction_detected = False
         self.state = "loop"
 
-    def get_video_frame(self, cap, video_type="default"):
-        """Récupère la prochaine frame d'une vidéo avec optimisations"""
-        if not cap or not cap.isOpened():
-            return None
-
-        ret, frame = cap.read()
-        if not ret:
-            # Pour les vidéos loop et action, redémarrer
-            if video_type in ["loop", "action"]:
+    def get_video_frame(self, cap):
+        """Récupère la prochaine frame d'une vidéo"""
+        if cap and cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                # Redémarrer la vidéo si elle est en boucle (pour loop et action)
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 ret, frame = cap.read()
                 if not ret:
-                    print(f"[ERROR] Impossible de lire la frame pour {video_type}")
                     return None
-            else:
-                # Pour learn, c'est normal d'arriver à la fin
-                return None
 
-        # OPTIMISATION : Redimensionnement plus efficace
-        if frame.shape[:2] != (self.size[1], self.size[0]):
-            frame = cv2.resize(frame, self.size, interpolation=cv2.INTER_LINEAR)
-
-        # OPTIMISATION : Conversion couleur optimisée
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-        # OPTIMISATION : Conversion pygame plus efficace
-        # Éviter les opérations coûteuses de rotation/flip si possible
-        frame_transposed = np.transpose(frame_rgb, (1, 0, 2))
-        frame_flipped = np.flipud(frame_transposed)
-
-        try:
-            surface = pygame.surfarray.make_surface(frame_flipped)
-            return surface
-        except Exception as e:
-            print(f"[ERROR] Erreur conversion surface: {e}")
-            return None
+            frame = cv2.resize(frame, self.size)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            return pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
+        return None
 
     def blend_surfaces(self, surface1, surface2, alpha):
-        """Mélange deux surfaces avec un facteur alpha - OPTIMISÉ"""
+        """Mélange deux surfaces avec un facteur alpha"""
         if surface1 is None:
             return surface2
         if surface2 is None:
             return surface1
 
-        # OPTIMISATION : Éviter les copies inutiles
-        try:
-            # Créer une surface temporaire pour le blend
-            blended = surface1.copy()
-            surface2_copy = surface2.copy()
-            surface2_copy.set_alpha(int(255 * alpha))
-            blended.blit(surface2_copy, (0, 0), special_flags=pygame.BLEND_ALPHA_SDL2)
-            return blended
-        except:
-            # Fallback si blend avancé échoue
-            blended = surface1.copy()
-            surface2_copy = surface2.copy()
-            surface2_copy.set_alpha(int(255 * alpha))
-            blended.blit(surface2_copy, (0, 0))
-            return blended
+        # Créer une surface temporaire pour le blend
+        blended = surface1.copy()
+        surface2_copy = surface2.copy()
+        surface2_copy.set_alpha(int(255 * alpha))
+        blended.blit(surface2_copy, (0, 0))
+        return blended
 
     def render_frame(self):
-        """Rendu principal avec gestion des états - OPTIMISÉ"""
+        """Rendu principal avec gestion des états"""
         surface_to_render = None
 
         if self.state == "loop":
@@ -334,7 +273,7 @@ class VideoPlayer:
                     self.fade_progress
                 )
             else:
-                surface_to_render = self.current_frame_loop or self.current_frame_action
+                surface_to_render = self.current_frame_loop
 
         elif self.state == "action":
             # Mode action avec slide
@@ -349,7 +288,7 @@ class VideoPlayer:
                     self.fade_progress
                 )
             else:
-                surface_to_render = self.current_frame_action or self.current_frame_learn
+                surface_to_render = self.current_frame_action
 
         elif self.state == "learn":
             # Mode learn
@@ -363,11 +302,8 @@ class VideoPlayer:
                 self.screen.blit(surface_to_render, (0, self.current_slide_offset))
                 self.draw_sliding_text()
             else:
-                # Affichage normal - OPTIMISATION : blit direct
+                # Affichage normal
                 self.screen.blit(surface_to_render, (0, 0))
-        else:
-            # Écran noir si pas de surface
-            self.screen.fill((0, 0, 0))
 
     def handle_learn_video_end(self):
         """Gère la fin de la vidéo learn"""
@@ -383,25 +319,13 @@ class VideoPlayer:
                 return True
         return False
 
-    def sync_framerate(self):
-        """Synchronisation du framerate pour éviter les saccades"""
-        current_time = time.time()
-        elapsed = current_time - self.last_frame_time
-
-        if elapsed < self.frame_time:
-            # On va trop vite, attendre
-            sleep_time = self.frame_time - elapsed
-            time.sleep(sleep_time)
-
-        self.last_frame_time = time.time()
-
     def run(self):
         try:
             while self.running:
-                # OPTIMISATION : Initialiser les vidéos avec les paramètres optimaux
-                self.loop_cap = self.setup_video_capture(VIDEOS[self.current_language]["loop"])
-                self.action_cap = self.setup_video_capture(VIDEOS[self.current_language]["action"])
-                self.learn_cap = self.setup_video_capture(VIDEOS[self.current_language]["learn"])
+                # Initialiser les vidéos
+                self.loop_cap = cv2.VideoCapture(VIDEOS[self.current_language]["loop"])
+                self.action_cap = cv2.VideoCapture(VIDEOS[self.current_language]["action"])
+                self.learn_cap = cv2.VideoCapture(VIDEOS[self.current_language]["learn"])
 
                 if not self.loop_cap.isOpened():
                     print(f"[ERREUR] Impossible d'ouvrir la vidéo loop")
@@ -417,28 +341,22 @@ class VideoPlayer:
 
                 print(f"[VIDÉO] Démarrage en mode loop - Langue: {self.current_language}")
 
-                # Variables de performance
-                frame_count = 0
-                fps_timer = time.time()
-
                 while self.running:
-                    frame_start = time.time()
-
-                    # Récupérer les frames selon l'état avec type spécifié
+                    # Récupérer les frames selon l'état
                     if self.state in ["loop", "fade_to_action"]:
-                        self.current_frame_loop = self.get_video_frame(self.loop_cap, "loop")
+                        self.current_frame_loop = self.get_video_frame(self.loop_cap)
                         if self.state == "fade_to_action":
-                            self.current_frame_action = self.get_video_frame(self.action_cap, "action")
+                            self.current_frame_action = self.get_video_frame(self.action_cap)
 
                     elif self.state in ["action", "fade_to_learn"]:
-                        self.current_frame_action = self.get_video_frame(self.action_cap, "action")
+                        self.current_frame_action = self.get_video_frame(self.action_cap)
                         if self.state == "fade_to_learn":
-                            self.current_frame_learn = self.get_video_frame(self.learn_cap, "learn")
+                            self.current_frame_learn = self.get_video_frame(self.learn_cap)
 
                     elif self.state == "learn":
-                        self.current_frame_learn = self.get_video_frame(self.learn_cap, "learn")
+                        self.current_frame_learn = self.get_video_frame(self.learn_cap)
                         # Vérifier si la vidéo learn est terminée
-                        if self.current_frame_learn is None or self.handle_learn_video_end():
+                        if self.handle_learn_video_end():
                             continue
 
                     # Calculer la progression de l'interaction
@@ -457,18 +375,7 @@ class VideoPlayer:
 
                     # Gérer les événements
                     self.handle_events()
-
-                    # OPTIMISATION : Contrôle de framerate plus précis
-                    frame_count += 1
-                    if frame_count % 30 == 0:  # Chaque seconde
-                        current_time = time.time()
-                        actual_fps = 30 / (current_time - fps_timer)
-                        if actual_fps < 25:  # Si on descend trop bas
-                            print(f"[PERF] FPS faible détecté: {actual_fps:.1f}")
-                        fps_timer = current_time
-
-                    # Synchronisation framerate
-                    self.sync_framerate()
+                    self.clock.tick(30)
 
                 # Nettoyer les vidéos
                 if self.loop_cap:
@@ -480,8 +387,6 @@ class VideoPlayer:
 
         except StopIteration:
             self.run()
-        except Exception as e:
-            print(f"[ERROR] Erreur dans la boucle principale: {e}")
         finally:
             pygame.quit()
             print("[EXIT] Nettoyage terminé.")
