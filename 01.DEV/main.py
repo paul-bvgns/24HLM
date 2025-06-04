@@ -67,16 +67,13 @@ class VideoPlayer:
     def load_text_image(self):
         """Charge l'image PNG pour remplacer le texte"""
         try:
-            # Charger l'image PNG
-            # Vous pouvez spécifier le chemin de votre image ici selon la langue depuis la config
             image_path = VIDEOS[self.current_language]["image"]
             self.text_image = pygame.image.load(image_path).convert_alpha()
 
             # Optionnel : redimensionner l'image si nécessaire
-            # Vous pouvez ajuster ces dimensions selon vos besoins
-            desired_width = 800  # Largeur souhaitée
-            desired_height = 200  # Hauteur souhaitée
-            self.text_image = pygame.transform.scale(self.text_image, (desired_width, desired_height))
+            #desired_width = 800  # Largeur souhaitée
+            #desired_height = 200  # Hauteur souhaitée
+            #self.text_image = pygame.transform.scale(self.text_image, (desired_width, desired_height))
 
             # Calculer la position pour centrer l'image
             self.text_rect = self.text_image.get_rect()
