@@ -350,10 +350,10 @@ class VideoPlayer:
                             self.current_frame_learn = self.get_video_frame(self.learn_cap)
 
                     elif self.state == "learn":
-                        self.current_frame_learn = self.get_video_frame(self.learn_cap)
-                        # Vérifier si la vidéo learn est terminée
+                        # Vérifier si la vidéo learn est terminée **avant** de lire la prochaine frame
                         if self.handle_learn_video_end():
                             continue
+                        self.current_frame_learn = self.get_video_frame(self.learn_cap)
 
                     # Calculer la progression de l'interaction
                     self.calculate_interaction_progress()
