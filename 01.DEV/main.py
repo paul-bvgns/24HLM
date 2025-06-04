@@ -123,15 +123,16 @@ class VideoPlayer:
             pygame.draw.rect(self.screen, (255, 0, 0), filled_rect)
 
     def draw_sliding_text(self):
-        if self.current_slide_offset < self.size[1] // 2:
-            return
         if self.current_slide_offset > 0:
-                text_y = self.current_slide_offset - self.text_rect.height - 60  # 60
+            text_y = self.current_slide_offset - self.text_rect.height - 60  # 60
 
-                text_position = (self.text_rect.centerx - self.text_rect.width // 2, text_y)
+            text_position = (self.text_rect.centerx - self.text_rect.width // 2, text_y)
 
-                if text_y + self.text_rect.height > 0:
-                    self.screen.blit(self.text_surface, text_position)
+            if self.current_slide_offset < self.size[1] // 2:
+                return
+
+            if text_y + self.text_rect.height > 0:
+                self.screen.blit(self.text_surface, text_position)
 
 
     def on_button_press(self):
