@@ -197,9 +197,13 @@ class VideoPlayer:
                 self.screen.blit(self.text_image, image_position)
 
     def on_button_press(self):
+        current_time = time.time()
+        if current_time - self.last_button_time < BUTTON_DEBOUNCE_DELAY:
+            return  # Trop tôt, on ignore ce clic
+
         if self.state in ["loop", "action"]:
             self.button_counter += 1
-            self.last_button_time = time.time()
+            self.last_button_time = current_time
             print(f"[BUTTON] Clic détecté : {self.button_counter}/{BUTTON_PRESS_THRESHOLD}")
 
             # Marquer qu'une interaction a été détectée

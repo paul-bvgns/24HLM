@@ -8,12 +8,11 @@ Configuration pour le système de déclenchement vidéo
 MODE = "encoder"
 
 ENCODER_THRESHOLD = 70
-
 ENCODER_RESET_TIMEOUT = 5
 
 BUTTON_PRESS_THRESHOLD = 5
-
 BUTTON_RESET_TIMEOUT = 5
+BUTTON_DEBOUNCE_DELAY = 0.3
 
 BUTTON_PIN = 17
 CLK_PIN = 21
