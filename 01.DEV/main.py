@@ -70,7 +70,7 @@ class VideoPlayer:
             image_path = VIDEOS[self.current_language]["image"]
             self.text_image = pygame.image.load(image_path).convert_alpha()
 
-            desired_width = int(self.size[0] * 0.8)
+            desired_width = int(self.size[0] * 0.5)
             desired_height = int(self.text_image.get_height() * (desired_width / self.text_image.get_width()))
             self.text_image = pygame.transform.scale(self.text_image, (desired_width, desired_height))
 
