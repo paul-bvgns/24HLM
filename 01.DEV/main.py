@@ -25,7 +25,8 @@ class VideoPlayer:
         self.overlay_playing = False
 
         # Variables pour l'effet de glissement progressif
-        self.max_slide_distance = self.size[1] + 50  # Distance maximale de glissement
+        self.max_slide_distance = self.size[1] # Distance maximale de glissement
+        #self.max_slide_distance = self.size[1] + 50  # Distance maximale de glissement
         self.current_slide_offset = 0  # Position actuelle de glissement
 
         # Configuration de la barre de progression
