@@ -97,7 +97,6 @@ class VideoPlayer:
         )
         pygame.draw.rect(self.screen, (100, 100, 100), empty_rect)
 
-        # Calcul du pourcentage de progression
         if MODE == "button":
             progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
         elif MODE == "encoder":
@@ -105,7 +104,6 @@ class VideoPlayer:
         else:
             progress = 0
 
-        # Barre remplie (rouge)
         if progress > 0:
             filled_height = int(self.progress_bar_height * progress)
             filled_rect = pygame.Rect(
