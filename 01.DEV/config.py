@@ -11,6 +11,8 @@ Configuration pour le système de déclenchement vidéo
 
 MODE = os.getenv("MODE", "button")
 
+print(f"Mode de fonctionnement : {MODE}")
+
 ENCODER_THRESHOLD = os.getenv("ENCODER_THRESHOLD", 50)
 ENCODER_RESET_TIMEOUT = 5
 
