@@ -121,6 +121,7 @@ class VideoPlayer:
             print("[STATE] Action → Fade vers Learn")
             self.state = "fade_to_learn"
             self.fade_progress = 0.0
+            self.encoder_counter = 0
 
         elif self.state == "fade_to_learn":
             # Progression du fade vers learn
