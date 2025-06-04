@@ -135,7 +135,7 @@ class VideoPlayer:
                 print("[STATE] Fade terminé → Mode Action")
                 self.state = "action"
 
-        elif self.state == "action" and self.slide_offset_smooth >= self.max_slide_distance:
+        elif self.state == "action" and self.slide_offset_smooth >= self.max_slide_distance - 20:
             print("[STATE] Action → Fade vers Learn")
             self.state = "fade_to_learn"
             self.fade_progress = 0.0
