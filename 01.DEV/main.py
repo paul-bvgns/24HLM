@@ -10,9 +10,8 @@ from gpiozero import Button, RotaryEncoder
 from config import *
 
 
-def ease_out_quad(t):
-    return 1 - (1 - t) ** 2
-
+def lerp(a, b, t):
+    return a + (b - a) * t
 
 class VideoPlayer:
     def __init__(self):
@@ -45,6 +44,9 @@ class VideoPlayer:
         self.text_rect = self.text_surface.get_rect()
         self.text_rect.centerx = self.size[0] // 2
 
+        self.slide_offset_smooth = 0
+        self.lerp_speed = 0.1
+
         print("Touches : 1=FR, 2=IT, 3=DE, 4=EN, 0=vidéo temporaire, q=quitter")
 
         # Setup GPIO
@@ -75,18 +77,15 @@ class VideoPlayer:
 
     def calculate_slide_offset(self):
         if MODE == "button":
-            #progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
-            raw_progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
-            progress = ease_out_quad(raw_progress)
+            progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
         elif MODE == "encoder":
-            #progress = min(self.encoder_counter / ENCODER_THRESHOLD, 1.0)
-            raw_progress = min(self.encoder_counter / ENCODER_THRESHOLD, 1.0)
-            progress = ease_out_quad(raw_progress)
+            progress = min(self.encoder_counter / ENCODER_THRESHOLD, 1.0)
         else:
             progress = 0
 
-        self.current_slide_offset = int(progress * self.max_slide_distance)
-
+        target = progress * self.max_slide_distance
+        self.slide_offset_smooth = lerp(self.slide_offset_smooth, target, self.lerp_speed)
+        self.current_slide_offset = int(self.slide_offset_smooth)
         return progress
 
     def draw_progress_bar(self):
