@@ -24,16 +24,13 @@ class VideoPlayer:
         self.overlay_requested = False
         self.overlay_playing = False
 
-        # Variables pour l'effet de glissement progressif
-        #self.max_slide_distance = self.size[1] + 50  # Distance maximale de glissement
         self.max_slide_distance = self.size[1]
         self.current_slide_offset = 0
 
-        # Configuration de la barre de progression
         self.progress_bar_width = 20
-        self.progress_bar_height = self.size[1] - 40  # Hauteur avec marge
-        self.progress_bar_x = 20  # Position à gauche
-        self.progress_bar_y = 20  # Position du haut
+        self.progress_bar_height = self.size[1] - 40
+        self.progress_bar_x = 20
+        self.progress_bar_y = 20
 
         print("Touches : 1=FR, 2=IT, 3=DE, 4=EN, 0=vidéo temporaire, q=quitter")
 
@@ -71,8 +68,8 @@ class VideoPlayer:
         else:
             progress = 0
 
-        eased_progress = progress * progress * (3 - 2 * progress)  # Ease-in-out
-        self.current_slide_offset = int(eased_progress * self.max_slide_distance)
+        # Interpolation linéaire (lerp) - pas d'easing
+        self.current_slide_offset = int(progress * self.max_slide_distance)
 
         return progress
 
@@ -93,6 +90,7 @@ class VideoPlayer:
         )
         pygame.draw.rect(self.screen, (100, 100, 100), empty_rect)
 
+        # Calcul du pourcentage de progression
         if MODE == "button":
             progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
         elif MODE == "encoder":
@@ -100,6 +98,7 @@ class VideoPlayer:
         else:
             progress = 0
 
+        # Barre remplie (rouge)
         if progress > 0:
             filled_height = int(self.progress_bar_height * progress)
             filled_rect = pygame.Rect(
@@ -129,7 +128,7 @@ class VideoPlayer:
                 print("[BUTTON] Inactivité détectée. Reset des clics.")
                 self.button_counter = 0
                 self.current_slide_offset = 0  # Reset du glissement
-            time.sleep(0.6)
+            time.sleep(0.1)
 
     def on_encoder_rotate(self):
         if not self.overlay_playing:
@@ -152,21 +151,24 @@ class VideoPlayer:
             time.sleep(0.1)
 
     def render_frame(self, surface):
+        """Affiche la frame avec l'effet de glissement basé sur le progrès"""
         progress = self.calculate_slide_offset()
 
         if self.current_slide_offset > 0:
+            # Effacer l'écran avec du noir
             self.screen.fill((0, 0, 0))
 
+            # Afficher la surface décalée vers le bas
             self.screen.blit(surface, (0, self.current_slide_offset))
 
-
-            #if progress > 0.5:
-            #    fade_progress = (progress - 0.5) * 2  # 0 à 1 pour la seconde moitié
-            #    fade_alpha = int(fade_progress * 255)
-            #    fade_surface = pygame.Surface(self.size)
-            #    fade_surface.set_alpha(fade_alpha)
-            #    fade_surface.fill((0, 0, 0))
-            #    self.screen.blit(fade_surface, (0, 0))
+            # Effet de fondu quand la vidéo commence à disparaître (à partir de 50% du progrès)
+            if progress > 0.5:
+                fade_progress = (progress - 0.5) * 2  # 0 à 1 pour la seconde moitié
+                fade_alpha = int(fade_progress * 255)
+                fade_surface = pygame.Surface(self.size)
+                fade_surface.set_alpha(fade_alpha)
+                fade_surface.fill((0, 0, 0))
+                self.screen.blit(fade_surface, (0, 0))
         else:
             # Affichage normal
             self.screen.blit(surface, (0, 0))
