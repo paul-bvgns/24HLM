@@ -59,8 +59,7 @@ class VideoPlayer:
             thread.start()
 
     def draw_progress_bar(self):
-        """Dessine la barre de progression rouge à gauche de l'écran"""
-        # Fond de la barre (gris foncé)
+
         background_rect = pygame.Rect(
             self.progress_bar_x - 2,
             self.progress_bar_y - 2,
@@ -69,7 +68,6 @@ class VideoPlayer:
         )
         pygame.draw.rect(self.screen, (40, 40, 40), background_rect)
 
-        # Barre vide (gris clair)
         empty_rect = pygame.Rect(
             self.progress_bar_x,
             self.progress_bar_y,
@@ -155,8 +153,7 @@ class VideoPlayer:
             surface = pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
             self.screen.blit(surface, (0, 0))
 
-            # Dessiner la barre de progression par-dessus la vidéo
-            self.draw_progress_bar()
+            #self.draw_progress_bar()
 
             pygame.display.flip()
 
