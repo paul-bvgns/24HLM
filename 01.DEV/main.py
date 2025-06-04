@@ -28,7 +28,7 @@ class VideoPlayer:
         # États du système
         self.state = "loop"  # "loop", "fade_to_action", "action", "fade_to_learn", "learn"
         self.fade_progress = 0.0
-        self.fade_speed = 0.05
+        self.fade_speed = 0.5
 
         # Variables pour l'interaction
         self.interaction_progress = 0.0
