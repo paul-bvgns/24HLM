@@ -304,11 +304,11 @@ class VideoPlayer:
                 self.screen.blit(surface_to_render, (0, 0))
 
     def handle_learn_video_end(self):
-        """Gère la fin de la vidéo learn sans relire une frame"""
+        """Gère la fin de la vidéo learn"""
         if self.state == "learn" and self.learn_cap:
-            current_frame = int(self.learn_cap.get(cv2.CAP_PROP_POS_FRAMES))
-            total_frames = int(self.learn_cap.get(cv2.CAP_PROP_FRAME_COUNT))
-            if current_frame >= total_frames:
+            ret, _ = self.learn_cap.read()
+            if not ret:
+                # Fin de la vidéo learn
                 print("[LEARN] Vidéo terminée, retour au loop")
                 self.learn_cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset pour la prochaine fois
                 self.reset_interaction()
