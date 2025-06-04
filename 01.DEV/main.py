@@ -32,9 +32,9 @@ class VideoPlayer:
         self.progress_bar_x = 20
         self.progress_bar_y = 20
 
-        self.font_size = 48
+        self.font_size = 60
         self.font = pygame.font.Font(None, self.font_size)
-        self.text_content = "Continue de tourner ! "
+        self.text_content = "CONTINUE DE TOURNER !"
         self.text_color = (255, 255, 255)
         self.text_surface = self.font.render(self.text_content, True, self.text_color)
         self.text_rect = self.text_surface.get_rect()
@@ -118,8 +118,6 @@ class VideoPlayer:
 
     def draw_sliding_text(self):
         if self.current_slide_offset > 0:
-            # Position du texte : il commence hors écran (y négatif) et descend
-            # Le texte sera positionné au-dessus de la vidéo
             text_y = self.current_slide_offset - self.text_rect.height - 20  # 20px d'espacement
 
             # Créer un rectangle pour positionner le texte
