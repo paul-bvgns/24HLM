@@ -72,7 +72,7 @@ class VideoPlayer:
             progress = 0
 
         eased_progress = progress * progress * (3 - 2 * progress)  # Ease-in-out
-        self.current_slide_offset = int(progress * self.max_slide_distance)
+        self.current_slide_offset = int(eased_progress * self.max_slide_distance)
 
         return progress
 
