@@ -9,7 +9,6 @@ import threading
 from gpiozero import Button, RotaryEncoder
 from config import *
 
-
 def lerp(a, b, t):
     return a + (b - a) * t
 
@@ -49,7 +48,6 @@ class VideoPlayer:
 
         print("Touches : 1=FR, 2=IT, 3=DE, 4=EN, 0=vidéo temporaire, q=quitter")
 
-        # Setup GPIO
         self.encoder_counter = 0
         self.button_counter = 0
         self.last_rotation_time = time.time()
@@ -60,17 +58,12 @@ class VideoPlayer:
         if MODE == "button":
             self.button = Button(BUTTON_PIN)
             self.button.when_pressed = self.on_button_press
-
-            # Lancement d'un thread pour reset du bouton après timeout
             thread = threading.Thread(target=self.button_timeout_loop)
             thread.daemon = True
             thread.start()
-
         elif MODE == "encoder":
             self.encoder = RotaryEncoder(CLK_PIN, DT_PIN)
             self.encoder.when_rotated = self.on_encoder_rotate
-
-            # Lancement d'un thread pour reset après timeout
             thread = threading.Thread(target=self.encoder_timeout_loop)
             thread.daemon = True
             thread.start()
@@ -124,10 +117,7 @@ class VideoPlayer:
 
     def draw_sliding_text(self):
         if self.current_slide_offset > 0:
-            # Position Y calculée en fonction du slide
             text_y = self.current_slide_offset - self.text_rect.height - 60
-
-            # Empêcher le texte d'aller plus bas que le centre vertical
             center_y = self.size[1] // 2 - self.text_rect.height // 2
             text_y = min(text_y, center_y)
 
@@ -144,12 +134,11 @@ class VideoPlayer:
             self.button_counter += 1
             self.last_button_time = time.time()
             print(f"[BUTTON] Clic détecté : {self.button_counter}/{BUTTON_PRESS_THRESHOLD} - Glissement: {self.current_slide_offset}px")
-
             if self.button_counter >= BUTTON_PRESS_THRESHOLD:
                 print("[BUTTON] clics atteints. Lancement vidéo temporaire.")
                 self.overlay_requested = True
                 self.button_counter = 0
-                self.current_slide_offset = 0  # Reset du glissement
+                self.current_slide_offset = 0
 
     def button_timeout_loop(self):
         while self.running:
@@ -157,7 +146,7 @@ class VideoPlayer:
                     self.button_counter != 0):
                 print("[BUTTON] Inactivité détectée. Reset des clics.")
                 self.button_counter = 0
-                self.current_slide_offset = 0  # Reset du glissement
+                self.current_slide_offset = 0
             time.sleep(0.1)
 
     def on_encoder_rotate(self):
@@ -169,7 +158,7 @@ class VideoPlayer:
                 print("[ENCODER] Seuil atteint. Lancement vidéo temporaire.")
                 self.overlay_requested = True
                 self.encoder_counter = 0
-                self.current_slide_offset = 0  # Reset du glissement
+                self.current_slide_offset = 0
 
     def encoder_timeout_loop(self):
         while self.running:
@@ -177,28 +166,18 @@ class VideoPlayer:
                     self.encoder_counter != 0):
                 print("[ENCODER] Inactivité détectée. Reset.")
                 self.encoder_counter = 0
-                self.current_slide_offset = 0  # Reset du glissement
+                self.current_slide_offset = 0
             time.sleep(0.1)
 
-    def render_frame(self, surface):
-        progress = self.calculate_slide_offset()
-
-        if self.current_slide_offset > 0:
-            self.screen.fill((0, 0, 0))
-
-            # Afficher la vidéo décalée vers le bas
-            self.screen.blit(surface, (0, self.current_slide_offset))
-
-            # Afficher le texte qui descend avec la vidéo
-            self.draw_sliding_text()
-
-            #if progress > 0.5:
-            #    fade_progress = (progress - 0.5) * 2
-            #   fade_alpha = int(fade_progress * 255)
-            #   fade_surface = pygame.Surface(self.size)
-            #   fade_surface.set_alpha(fade_alpha)
-            #  fade_surface.fill((0, 0, 0))
-            #  self.screen.blit(fade_surface, (0, 0))
+    def render_frame(self, surface, slidable=True):
+        if slidable:
+            progress = self.calculate_slide_offset()
+            if self.current_slide_offset > 0:
+                self.screen.fill((0, 0, 0))
+                self.screen.blit(surface, (0, self.current_slide_offset))
+                self.draw_sliding_text()
+            else:
+                self.screen.blit(surface, (0, 0))
         else:
             self.screen.blit(surface, (0, 0))
 
@@ -222,19 +201,21 @@ class VideoPlayer:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             surface = pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
 
-            # Affichage avec effet de glissement basé sur le progrès
-            self.render_frame(surface)
-
-            # Affichage de la barre de progression
+            self.render_frame(surface, slidable=loop)
             self.draw_progress_bar()
-
             pygame.display.flip()
 
             self.handle_events()
+
             if self.overlay_requested:
                 self.overlay_requested = False
                 self.overlay_playing = True
                 cap.release()
+
+                # Reset le slide pour interruption
+                self.slide_offset_smooth = 0
+                self.current_slide_offset = 0
+
                 self.play_video(VIDEOS[self.current_language]["once"], loop=False)
                 cap = cv2.VideoCapture(path)
 
