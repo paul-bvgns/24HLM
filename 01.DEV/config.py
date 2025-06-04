@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 """
 Configuration pour le système de déclenchement vidéo
 """
 
-MODE = "encoder"
+MODE = os.getenv("MODE", "button")
 
-ENCODER_THRESHOLD = 70
+ENCODER_THRESHOLD = os.getenv("ENCODER_THRESHOLD", "50")
 ENCODER_RESET_TIMEOUT = 5
 
-BUTTON_PRESS_THRESHOLD = 5
+BUTTON_PRESS_THRESHOLD = os.getenv("BUTTON_PRESS_THRESHOLD", "3")
 BUTTON_RESET_TIMEOUT = 5
-BUTTON_DEBOUNCE_DELAY = 0.3
+BUTTON_DEBOUNCE_DELAY = os.getenv("BUTTON_DEBOUNCE_DELAY", "0.8")
 
 BUTTON_PIN = 17
 CLK_PIN = 21
