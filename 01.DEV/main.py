@@ -25,10 +25,10 @@ class VideoPlayer:
         self.current_language = DEFAULT_LANGUAGE
         self.running = True
 
-        # États de vidéo
-        self.video_state = "loop"  # "loop", "action", "learn"
+        # États du système
+        self.state = "loop"  # "loop", "fade_to_action", "action", "fade_to_learn", "learn"
         self.fade_progress = 0.0
-        self.is_fading = False
+        self.fade_speed = 0.05
 
         # Variables pour l'interaction
         self.interaction_progress = 0.0
@@ -58,13 +58,16 @@ class VideoPlayer:
         self.button_counter = 0
         self.last_rotation_time = time.time()
         self.last_button_time = time.time()
+        self.interaction_detected = False
         self.setup_gpio()
 
         # Vidéos
         self.loop_cap = None
         self.action_cap = None
+        self.learn_cap = None
         self.current_frame_loop = None
         self.current_frame_action = None
+        self.current_frame_learn = None
 
     def setup_gpio(self):
         if MODE == "button":
@@ -88,31 +91,50 @@ class VideoPlayer:
         else:
             self.interaction_progress = 0
 
-        # Calcul du slide offset
-        target = self.interaction_progress * self.max_slide_distance
-        self.slide_offset_smooth = lerp(self.slide_offset_smooth, target, self.lerp_speed)
-        self.current_slide_offset = int(self.slide_offset_smooth)
+        # Calcul du slide offset seulement en mode action
+        if self.state == "action":
+            target = self.interaction_progress * self.max_slide_distance
+            self.slide_offset_smooth = lerp(self.slide_offset_smooth, target, self.lerp_speed)
+            self.current_slide_offset = int(self.slide_offset_smooth)
 
         return self.interaction_progress
 
-    def start_fade_to_action(self):
-        """Démarre le fade de la vidéo loop vers la vidéo action"""
-        if self.video_state == "loop" and not self.is_fading:
-            print("[FADE] Début du fade vers vidéo action")
-            self.is_fading = True
+    def update_state_machine(self):
+        """Met à jour la machine d'état"""
+        if self.state == "loop" and self.interaction_detected:
+            # Démarrer le fade vers action
+            print("[STATE] Loop → Fade vers Action")
+            self.state = "fade_to_action"
             self.fade_progress = 0.0
-            self.video_state = "action"
+            self.interaction_detected = False
 
-    def update_fade(self):
-        """Met à jour le fade entre les vidéos"""
-        if self.is_fading:
-            self.fade_progress += 0.05  # Vitesse du fade
+        elif self.state == "fade_to_action":
+            # Progression du fade
+            self.fade_progress += self.fade_speed
             if self.fade_progress >= 1.0:
                 self.fade_progress = 1.0
-                self.is_fading = False
-                print("[FADE] Fade terminé")
+                print("[STATE] Fade terminé → Mode Action")
+                self.state = "action"
+
+        elif self.state == "action" and self.interaction_progress >= 1.0:
+            # Seuil atteint, démarrer fade vers learn
+            print("[STATE] Action → Fade vers Learn")
+            self.state = "fade_to_learn"
+            self.fade_progress = 0.0
+
+        elif self.state == "fade_to_learn":
+            # Progression du fade vers learn
+            self.fade_progress += self.fade_speed
+            if self.fade_progress >= 1.0:
+                self.fade_progress = 1.0
+                print("[STATE] Fade terminé → Mode Learn")
+                self.state = "learn"
 
     def draw_progress_bar(self):
+        """Affiche la barre de progression seulement en mode action"""
+        if self.state != "action":
+            return
+
         background_rect = pygame.Rect(
             self.progress_bar_x - 2,
             self.progress_bar_y - 2,
@@ -140,7 +162,8 @@ class VideoPlayer:
             pygame.draw.rect(self.screen, (255, 0, 0), filled_rect)
 
     def draw_sliding_text(self):
-        if self.current_slide_offset > 0:
+        """Affiche le texte qui slide seulement en mode action"""
+        if self.state == "action" and self.current_slide_offset > 0:
             text_y = self.current_slide_offset - self.text_rect.height - 60
             center_y = self.size[1] // 2 - self.text_rect.height // 2
             text_y = min(text_y, center_y)
@@ -154,77 +177,67 @@ class VideoPlayer:
                 self.screen.blit(self.text_surface, text_position)
 
     def on_button_press(self):
-        if self.video_state == "loop":
+        if self.state in ["loop", "action"]:
             self.button_counter += 1
             self.last_button_time = time.time()
             print(f"[BUTTON] Clic détecté : {self.button_counter}/{BUTTON_PRESS_THRESHOLD}")
 
-            # Démarrer le fade dès la première interaction
-            if self.button_counter == 1:
-                self.start_fade_to_action()
-
-            if self.button_counter >= BUTTON_PRESS_THRESHOLD:
-                print("[BUTTON] Seuil atteint. Lancement vidéo learn.")
-                self.video_state = "learn"
-                self.reset_interaction()
+            # Marquer qu'une interaction a été détectée
+            if self.state == "loop":
+                self.interaction_detected = True
 
     def button_timeout_loop(self):
         while self.running:
             if (time.time() - self.last_button_time > BUTTON_RESET_TIMEOUT and
-                    self.button_counter != 0 and self.video_state != "learn"):
-                print("[BUTTON] Inactivité détectée. Reset des clics.")
+                    self.button_counter != 0 and self.state not in ["learn", "fade_to_learn"]):
+                print("[BUTTON] Inactivité détectée. Reset.")
                 self.reset_interaction()
             time.sleep(0.1)
 
     def on_encoder_rotate(self):
-        self.encoder_counter += 1
-        self.last_rotation_time = time.time()
-        print(f"[ENCODER] Rotation détectée : {self.encoder_counter}/{ENCODER_THRESHOLD}")
+        if self.state in ["loop", "action"]:
+            self.encoder_counter += 1
+            self.last_rotation_time = time.time()
+            print(f"[ENCODER] Rotation détectée : {self.encoder_counter}/{ENCODER_THRESHOLD}")
 
-        if self.video_state == "loop":
-            # Démarrer le fade dès la première interaction
-            if self.encoder_counter == 1:
-                self.start_fade_to_action()
-
-        if self.encoder_counter >= ENCODER_THRESHOLD & self.video_state == "learn":
-            print("[ENCODER] Seuil atteint. Lancement vidéo learn.")
-            self.video_state = "learn"
-            self.reset_interaction()
+            # Marquer qu'une interaction a été détectée
+            if self.state == "loop":
+                self.interaction_detected = True
 
     def encoder_timeout_loop(self):
         while self.running:
             if (time.time() - self.last_rotation_time > ENCODER_RESET_TIMEOUT and
-                    self.encoder_counter != 0 and self.video_state != "learn"):
+                    self.encoder_counter != 0 and self.state not in ["learn", "fade_to_learn"]):
                 print("[ENCODER] Inactivité détectée. Reset.")
                 self.reset_interaction()
             time.sleep(0.1)
 
     def reset_interaction(self):
-        """Remet à zéro les compteurs d'interaction"""
+        """Remet à zéro tout le système"""
+        print("[RESET] Remise à zéro complète")
         self.button_counter = 0
         self.encoder_counter = 0
         self.interaction_progress = 0.0
         self.current_slide_offset = 0
         self.slide_offset_smooth = 0
         self.fade_progress = 0.0
-        self.is_fading = False
+        self.interaction_detected = False
+        self.state = "loop"
 
     def get_video_frame(self, cap):
         """Récupère la prochaine frame d'une vidéo"""
         if cap and cap.isOpened():
             ret, frame = cap.read()
-            if ret:
-                frame = cv2.resize(frame, self.size)
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                return pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
-            else:
-                # Redémarrer la vidéo si elle est en boucle
+            if not ret:
+                # Redémarrer la vidéo si elle est en boucle (pour loop et action)
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 ret, frame = cap.read()
-                if ret:
-                    frame = cv2.resize(frame, self.size)
-                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    return pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
+                if not ret:
+                    return None
+
+            frame = cv2.resize(frame, self.size)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            return pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
         return None
 
     def blend_surfaces(self, surface1, surface2, alpha):
@@ -245,70 +258,62 @@ class VideoPlayer:
         """Rendu principal avec gestion des états"""
         surface_to_render = None
 
-        if self.video_state == "loop":
+        if self.state == "loop":
             # Mode loop normal
             surface_to_render = self.current_frame_loop
 
-        elif self.video_state == "action":
-            # Mode action avec fade et slide
-            if self.is_fading and self.current_frame_loop and self.current_frame_action:
-                # Blend entre loop et action
+        elif self.state == "fade_to_action":
+            # Fade de loop vers action
+            if self.current_frame_loop and self.current_frame_action:
                 surface_to_render = self.blend_surfaces(
                     self.current_frame_loop,
                     self.current_frame_action,
                     self.fade_progress
                 )
             else:
+                surface_to_render = self.current_frame_loop
+
+        elif self.state == "action":
+            # Mode action avec slide
+            surface_to_render = self.current_frame_action
+
+        elif self.state == "fade_to_learn":
+            # Fade de action vers learn
+            if self.current_frame_action and self.current_frame_learn:
+                surface_to_render = self.blend_surfaces(
+                    self.current_frame_action,
+                    self.current_frame_learn,
+                    self.fade_progress
+                )
+            else:
                 surface_to_render = self.current_frame_action
 
-            # Appliquer le slide
-            if surface_to_render and self.current_slide_offset > 0:
+        elif self.state == "learn":
+            # Mode learn
+            surface_to_render = self.current_frame_learn
+
+        # Affichage avec ou sans slide
+        if surface_to_render:
+            if self.state == "action" and self.current_slide_offset > 0:
+                # Appliquer le slide uniquement en mode action
                 self.screen.fill((0, 0, 0))
                 self.screen.blit(surface_to_render, (0, self.current_slide_offset))
                 self.draw_sliding_text()
-            elif surface_to_render:
+            else:
+                # Affichage normal
                 self.screen.blit(surface_to_render, (0, 0))
 
-        elif self.video_state == "learn":
-            # Mode learn - vidéo simple
-            surface_to_render = self.current_frame_loop  # Utilise la même variable pour simplifier
-            if surface_to_render:
-                self.screen.blit(surface_to_render, (0, 0))
-
-        # Affichage par défaut si pas de surface
-        if surface_to_render and self.video_state not in ["action"]:
-            self.screen.blit(surface_to_render, (0, 0))
-
-    def play_video_learn(self, path):
-        """Joue la vidéo learn une seule fois"""
-        cap = cv2.VideoCapture(path)
-        if not cap.isOpened():
-            print(f"[ERREUR] Impossible d'ouvrir : {path}")
-            return
-
-        print(f"[VIDÉO LEARN] Lecture : {path}")
-
-        while cap.isOpened() and self.running and self.video_state == "learn":
-            ret, frame = cap.read()
+    def handle_learn_video_end(self):
+        """Gère la fin de la vidéo learn"""
+        if self.state == "learn" and self.learn_cap:
+            ret, _ = self.learn_cap.read()
             if not ret:
-                # Fin de la vidéo learn, retour au loop
-                print("[VIDÉO LEARN] Terminée, retour au loop")
-                break
-
-            frame = cv2.resize(frame, self.size)
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            surface = pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
-
-            self.screen.blit(surface, (0, 0))
-            pygame.display.flip()
-
-            self.handle_events()
-            self.clock.tick(30)
-
-        cap.release()
-        # Retour au mode loop
-        self.video_state = "loop"
-        self.reset_interaction()
+                # Fin de la vidéo learn
+                print("[LEARN] Vidéo terminée, retour au loop")
+                self.learn_cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset pour la prochaine fois
+                self.reset_interaction()
+                return True
+        return False
 
     def run(self):
         try:
@@ -316,6 +321,7 @@ class VideoPlayer:
                 # Initialiser les vidéos
                 self.loop_cap = cv2.VideoCapture(VIDEOS[self.current_language]["loop"])
                 self.action_cap = cv2.VideoCapture(VIDEOS[self.current_language]["action"])
+                self.learn_cap = cv2.VideoCapture(VIDEOS[self.current_language]["learn"])
 
                 if not self.loop_cap.isOpened():
                     print(f"[ERREUR] Impossible d'ouvrir la vidéo loop")
@@ -325,35 +331,41 @@ class VideoPlayer:
                     print(f"[ERREUR] Impossible d'ouvrir la vidéo action")
                     break
 
+                if not self.learn_cap.isOpened():
+                    print(f"[ERREUR] Impossible d'ouvrir la vidéo learn")
+                    break
+
                 print(f"[VIDÉO] Démarrage en mode loop - Langue: {self.current_language}")
 
                 while self.running:
-                    # Récupérer les frames
-                    if self.video_state in ["loop", "action"]:
+                    # Récupérer les frames selon l'état
+                    if self.state in ["loop", "fade_to_action"]:
                         self.current_frame_loop = self.get_video_frame(self.loop_cap)
-                        if self.video_state == "action":
+                        if self.state == "fade_to_action":
                             self.current_frame_action = self.get_video_frame(self.action_cap)
+
+                    elif self.state in ["action", "fade_to_learn"]:
+                        self.current_frame_action = self.get_video_frame(self.action_cap)
+                        if self.state == "fade_to_learn":
+                            self.current_frame_learn = self.get_video_frame(self.learn_cap)
+
+                    elif self.state == "learn":
+                        self.current_frame_learn = self.get_video_frame(self.learn_cap)
+                        # Vérifier si la vidéo learn est terminée
+                        if self.handle_learn_video_end():
+                            continue
 
                     # Calculer la progression de l'interaction
                     self.calculate_interaction_progress()
 
-                    # Mettre à jour le fade
-                    self.update_fade()
-
-                    # Si on passe en mode learn
-                    if self.video_state == "learn":
-                        self.loop_cap.release()
-                        self.action_cap.release()
-                        self.play_video_learn(VIDEOS[self.current_language]["learn"])
-                        # Après learn, redémarrer les vidéos loop/action
-                        break
+                    # Mettre à jour la machine d'état
+                    self.update_state_machine()
 
                     # Rendu
                     self.render_frame()
 
-                    # Afficher la barre de progression
-                    if self.video_state == "action":
-                        self.draw_progress_bar()
+                    # Afficher les éléments UI
+                    self.draw_progress_bar()
 
                     pygame.display.flip()
 
@@ -366,6 +378,8 @@ class VideoPlayer:
                     self.loop_cap.release()
                 if self.action_cap:
                     self.action_cap.release()
+                if self.learn_cap:
+                    self.learn_cap.release()
 
         except StopIteration:
             self.run()
@@ -382,10 +396,10 @@ class VideoPlayer:
                 if key == '-':
                     print("[EXIT] Quitter")
                     self.running = False
-                elif key == '0' and self.video_state == "loop":
+                elif key == '0' and self.state == "loop":
                     print("[ACTION] Touche 0 → vidéo learn")
-                    self.video_state = "learn"
-                elif key in {'1', '2', '3', '4'} and self.video_state == "loop":
+                    self.state = "learn"
+                elif key in {'1', '2', '3', '4'} and self.state == "loop":
                     lang_map = {'1': 'fr', '2': 'it', '3': 'de', '4': 'en'}
                     new_lang = lang_map[key]
                     if new_lang != self.current_language:
