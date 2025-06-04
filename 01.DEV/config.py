@@ -31,13 +31,9 @@ VIDEOS = {
         "learn": "/home/pha5e/24HLM/01.DEV/videos/fr/learn.mp4",
         "image": "/home/pha5e/24HLM/01.DEV/videos/fr/image.png",
     },
-    "it": {
-        "loop": "/home/pha5e/24HLM/01.DEV/videos/it/loop-video.mp4",
-        "once": "/home/pha5e/24HLM/01.DEV/videos/it/video-test.mp4"
-    },
-    "de": {
-        "loop": "/home/pha5e/24HLM/01.DEV/videos/de/loop-video.mp4",
-        "once": "/home/pha5e/24HLM/01.DEV/videos/de/video-test.mp4"
+    "es": {
+        "loop": "/home/pha5e/24HLM/01.DEV/videos/es/loop-video.mp4",
+        "once": "/home/pha5e/24HLM/01.DEV/videos/es/video-test.mp4"
     },
     "en": {
         "loop": "/home/pha5e/24HLM/01.DEV/videos/en/loop-video.mp4",
