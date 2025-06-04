@@ -177,19 +177,19 @@ class VideoPlayer:
             time.sleep(0.1)
 
     def on_encoder_rotate(self):
-        if self.video_state == "loop":
-            self.encoder_counter += 1
-            self.last_rotation_time = time.time()
-            print(f"[ENCODER] Rotation détectée : {self.encoder_counter}/{ENCODER_THRESHOLD}")
+        self.encoder_counter += 1
+        self.last_rotation_time = time.time()
+        print(f"[ENCODER] Rotation détectée : {self.encoder_counter}/{ENCODER_THRESHOLD}")
 
+        if self.video_state == "loop":
             # Démarrer le fade dès la première interaction
             if self.encoder_counter == 1:
                 self.start_fade_to_action()
 
-            if self.encoder_counter >= ENCODER_THRESHOLD:
-                print("[ENCODER] Seuil atteint. Lancement vidéo learn.")
-                self.video_state = "learn"
-                self.reset_interaction()
+        if self.encoder_counter >= ENCODER_THRESHOLD & self.video_state == "learn":
+            print("[ENCODER] Seuil atteint. Lancement vidéo learn.")
+            self.video_state = "learn"
+            self.reset_interaction()
 
     def encoder_timeout_loop(self):
         while self.running:
