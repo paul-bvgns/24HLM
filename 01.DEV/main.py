@@ -75,6 +75,11 @@ class VideoPlayer:
             #desired_height = 200  # Hauteur souhaitée
             #self.text_image = pygame.transform.scale(self.text_image, (desired_width, desired_height))
 
+            # l'image doit faire 80% de la largeur de l'écran
+            desired_width = int(self.size[0] * 0.8)
+            desired_height = int(self.text_image.get_height() * (desired_width / self.text_image.get_width()))
+            self.text_image = pygame.transform.scale(self.text_image, (desired_width, desired_height))
+
             # Calculer la position pour centrer l'image
             self.text_rect = self.text_image.get_rect()
             self.text_rect.centerx = self.size[0] // 2
