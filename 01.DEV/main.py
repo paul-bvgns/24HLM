@@ -124,16 +124,20 @@ class VideoPlayer:
 
     def draw_sliding_text(self):
         if self.current_slide_offset > 0:
-            text_y = self.current_slide_offset - self.text_rect.height - 60  # 60
+            # Position Y calculée en fonction du slide
+            text_y = self.current_slide_offset - self.text_rect.height - 60
 
-            text_position = (self.text_rect.centerx - self.text_rect.width // 2, text_y)
+            # Empêcher le texte d'aller plus bas que le centre vertical
+            center_y = self.size[1] // 2 - self.text_rect.height // 2
+            text_y = min(text_y, center_y)
+
+            text_position = (
+                self.text_rect.centerx - self.text_rect.width // 2,
+                text_y
+            )
 
             if text_y + self.text_rect.height > 0:
-                if self.current_slide_offset < self.size[1] // 2:
-                    self.screen.blit(self.text_surface, (self.size[0] // 2 - self.text_rect.width // 2, text_y))
-                else:
-                    self.screen.blit(self.text_surface, text_position)
-
+                self.screen.blit(self.text_surface, text_position)
 
     def on_button_press(self):
         if not self.overlay_playing:
