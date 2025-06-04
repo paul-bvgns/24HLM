@@ -133,7 +133,7 @@ class VideoPlayer:
     def draw_progress_bar(self):
         """Affiche la barre de progression seulement en mode action"""
         #if self.state != "action":
-            #return
+        #return
 
         background_rect = pygame.Rect(
             self.progress_bar_x - 2,
@@ -229,12 +229,16 @@ class VideoPlayer:
         if cap and cap.isOpened():
             ret, frame = cap.read()
             if not ret:
-                return None  # Vidéo terminée
+                # Redémarrer la vidéo si elle est en boucle (pour loop et action)
+                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                ret, frame = cap.read()
+                if not ret:
+                    return None
+
             frame = cv2.resize(frame, self.size)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             return pygame.surfarray.make_surface(np.flipud(np.rot90(frame)))
         return None
-
 
     def blend_surfaces(self, surface1, surface2, alpha):
         """Mélange deux surfaces avec un facteur alpha"""
@@ -346,13 +350,10 @@ class VideoPlayer:
                             self.current_frame_learn = self.get_video_frame(self.learn_cap)
 
                     elif self.state == "learn":
-                        frame = self.get_video_frame(self.learn_cap)
-                        if frame is None:
-                            print("[LEARN] Vidéo terminée, retour au loop")
-                            self.learn_cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                            self.reset_interaction()
+                        self.current_frame_learn = self.get_video_frame(self.learn_cap)
+                        # Vérifier si la vidéo learn est terminée
+                        if self.handle_learn_video_end():
                             continue
-                        self.current_frame_learn = frame
 
                     # Calculer la progression de l'interaction
                     self.calculate_interaction_progress()
