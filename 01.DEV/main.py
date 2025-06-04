@@ -177,39 +177,37 @@ class VideoPlayer:
                 self.screen.blit(self.text_surface, text_position)
 
     def on_button_press(self):
-        if self.state == "loop":
-            self.button_counter += 1
-            self.last_button_time = time.time()
-            print(f"[BUTTON] Clic détecté : {self.button_counter}/{BUTTON_PRESS_THRESHOLD}")
-            self.interaction_detected = True
-        elif self.state == "action":
+        if self.state in ["loop", "action"]:
             self.button_counter += 1
             self.last_button_time = time.time()
             print(f"[BUTTON] Clic détecté : {self.button_counter}/{BUTTON_PRESS_THRESHOLD}")
 
+            # Marquer qu'une interaction a été détectée
+            if self.state == "loop":
+                self.interaction_detected = True
+
     def button_timeout_loop(self):
         while self.running:
             if (time.time() - self.last_button_time > BUTTON_RESET_TIMEOUT and
-                    self.button_counter != 0 and self.state in ["loop", "action"]):
+                    self.button_counter != 0 and self.state not in ["learn", "fade_to_learn"]):
                 print("[BUTTON] Inactivité détectée. Reset.")
                 self.reset_interaction()
             time.sleep(0.1)
 
     def on_encoder_rotate(self):
-        if self.state == "loop":
-            self.encoder_counter += 1
-            self.last_rotation_time = time.time()
-            print(f"[ENCODER] Rotation détectée : {self.encoder_counter}/{ENCODER_THRESHOLD}")
-            self.interaction_detected = True
-        elif self.state == "action":
+        if self.state in ["loop", "action"]:
             self.encoder_counter += 1
             self.last_rotation_time = time.time()
             print(f"[ENCODER] Rotation détectée : {self.encoder_counter}/{ENCODER_THRESHOLD}")
 
+            # Marquer qu'une interaction a été détectée
+            if self.state == "loop":
+                self.interaction_detected = True
+
     def encoder_timeout_loop(self):
         while self.running:
             if (time.time() - self.last_rotation_time > ENCODER_RESET_TIMEOUT and
-                    self.encoder_counter != 0 and self.state in ["loop", "action"]):
+                    self.encoder_counter != 0 and self.state not in ["learn", "fade_to_learn"]):
                 print("[ENCODER] Inactivité détectée. Reset.")
                 self.reset_interaction()
             time.sleep(0.1)
@@ -308,13 +306,11 @@ class VideoPlayer:
     def handle_learn_video_end(self):
         """Gère la fin de la vidéo learn"""
         if self.state == "learn" and self.learn_cap:
-            # Vérifier si on a atteint la fin
-            current_frame = self.learn_cap.get(cv2.CAP_PROP_POS_FRAMES)
-            total_frames = self.learn_cap.get(cv2.CAP_PROP_FRAME_COUNT)
-
-            if current_frame >= total_frames - 1:
+            ret, _ = self.learn_cap.read()
+            if not ret:
                 # Fin de la vidéo learn
                 print("[LEARN] Vidéo terminée, retour au loop")
+                self.learn_cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset pour la prochaine fois
                 self.reset_interaction()
                 return True
         return False
