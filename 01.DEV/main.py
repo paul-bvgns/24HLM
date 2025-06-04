@@ -32,7 +32,7 @@ class VideoPlayer:
 
         # Variables pour l'interaction
         self.interaction_progress = 0.0
-        self.max_slide_distance = self.size[1]
+        self.max_slide_distance = self.size[1] + 100
         self.current_slide_offset = 0
         self.slide_offset_smooth = 0
         self.lerp_speed = 0.1
@@ -113,12 +113,7 @@ class VideoPlayer:
         # Calcul du slide offset seulement en mode action
         if self.state == "action":
             target = self.interaction_progress * self.max_slide_distance
-
-            if self.interaction_progress >= 1.0 or abs(self.slide_offset_smooth - target) < 1:
-                self.slide_offset_smooth = target
-            else:
-                self.slide_offset_smooth = lerp(self.slide_offset_smooth, target, self.lerp_speed)
-
+            self.slide_offset_smooth = lerp(self.slide_offset_smooth, target, self.lerp_speed)
             self.current_slide_offset = int(self.slide_offset_smooth)
 
         return self.interaction_progress
