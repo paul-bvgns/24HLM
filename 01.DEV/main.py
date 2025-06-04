@@ -198,7 +198,7 @@ class VideoPlayer:
 
     def on_button_press(self):
         current_time = time.time()
-        if current_time - self.last_button_time < int(BUTTON_DEBOUNCE_DELAY):
+        if current_time - self.last_button_time < float(BUTTON_DEBOUNCE_DELAY):
             return  # Trop tôt, on ignore ce clic
 
         if self.state in ["loop", "action"]:
