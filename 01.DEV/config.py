@@ -21,8 +21,9 @@ DT_PIN = 20
 
 VIDEOS = {
     "fr": {
-        "loop": "/home/pha5e/24HLM/01.DEV/videos/fr/loop-video.mp4",
-        "once": "/home/pha5e/24HLM/01.DEV/videos/fr/video-test.mp4"
+        "loop": "/home/pha5e/24HLM/01.DEV/videos/it/loop-video.mp4",
+        "action": "/home/pha5e/24HLM/01.DEV/videos/fr/loop-video.mp4",
+        "learn": "/home/pha5e/24HLM/01.DEV/videos/fr/video-test.mp4"
     },
     "it": {
         "loop": "/home/pha5e/24HLM/01.DEV/videos/it/loop-video.mp4",
