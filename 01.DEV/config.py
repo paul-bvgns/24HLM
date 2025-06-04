@@ -7,7 +7,7 @@ Configuration pour le système de déclenchement vidéo
 
 MODE = "encoder"
 
-ENCODER_THRESHOLD = 90
+ENCODER_THRESHOLD = 70
 
 ENCODER_RESET_TIMEOUT = 5
 
