@@ -131,8 +131,13 @@ class VideoPlayer:
             if self.current_slide_offset < self.size[1] // 2:
                 return
 
+
+
             if text_y + self.text_rect.height > 0:
-                self.screen.blit(self.text_surface, text_position)
+                if self.current_slide_offset < self.size[1] // 2:
+                    self.screen.blit(self.text_surface, (self.size[0] // 2 - self.text_rect.width // 2, text_y))
+                else:
+                    self.screen.blit(self.text_surface, text_position)
 
 
     def on_button_press(self):
