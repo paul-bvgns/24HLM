@@ -9,6 +9,11 @@ import threading
 from gpiozero import Button, RotaryEncoder
 from config import *
 
+
+def ease_out_quad(t):
+    return 1 - (1 - t) ** 2
+
+
 class VideoPlayer:
     def __init__(self):
         pygame.init()
@@ -68,18 +73,15 @@ class VideoPlayer:
             thread.daemon = True
             thread.start()
 
-    def ease_out_quad(t):
-        return 1 - (1 - t) ** 2
-
     def calculate_slide_offset(self):
         if MODE == "button":
             #progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
             raw_progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
-            progress = self.ease_out_quad(raw_progress)
+            progress = ease_out_quad(raw_progress)
         elif MODE == "encoder":
             #progress = min(self.encoder_counter / ENCODER_THRESHOLD, 1.0)
             raw_progress = min(self.encoder_counter / ENCODER_THRESHOLD, 1.0)
-            progress = self.ease_out_quad(raw_progress)
+            progress = ease_out_quad(raw_progress)
         else:
             progress = 0
 
