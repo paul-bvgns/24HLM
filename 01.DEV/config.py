@@ -19,6 +19,11 @@ BUTTON_PIN = 17
 CLK_PIN = 21
 DT_PIN = 20
 
+# Optimisations vidéo
+VIDEO_BUFFER_SIZE = 1  # Buffer minimal
+TARGET_FPS = 30
+ENABLE_VSYNC = True
+
 VIDEOS = {
     "fr": {
         "loop": "/home/pha5e/24HLM/01.DEV/videos/fr/loop.mp4",
