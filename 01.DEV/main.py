@@ -70,9 +70,13 @@ class VideoPlayer:
 
     def calculate_slide_offset(self):
         if MODE == "button":
-            progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
+            #progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
+            raw_progress = min(self.button_counter / BUTTON_PRESS_THRESHOLD, 1.0)
+            progress = self.ease_out_quad(raw_progress)
         elif MODE == "encoder":
-            progress = min(self.encoder_counter / ENCODER_THRESHOLD, 1.0)
+            #progress = min(self.encoder_counter / ENCODER_THRESHOLD, 1.0)
+            raw_progress = min(self.encoder_counter / ENCODER_THRESHOLD, 1.0)
+            progress = self.ease_out_quad(raw_progress)
         else:
             progress = 0
 
@@ -163,6 +167,9 @@ class VideoPlayer:
                 self.encoder_counter = 0
                 self.current_slide_offset = 0  # Reset du glissement
             time.sleep(0.1)
+
+    def ease_out_quad(t):
+        return 1 - (1 - t) ** 2
 
     def render_frame(self, surface):
         progress = self.calculate_slide_offset()
