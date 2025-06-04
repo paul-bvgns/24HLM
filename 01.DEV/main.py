@@ -132,8 +132,8 @@ class VideoPlayer:
 
     def draw_progress_bar(self):
         """Affiche la barre de progression seulement en mode action"""
-        if self.state != "action":
-            return
+        #if self.state != "action":
+            #return
 
         background_rect = pygame.Rect(
             self.progress_bar_x - 2,
