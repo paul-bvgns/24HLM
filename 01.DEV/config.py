@@ -6,7 +6,7 @@ Configuration pour le système de déclenchement vidéo
 """
 
 # Mode de déclenchement: "button" ou "encoder"
-MODE = "button"
+MODE = "encoder"
 
 # Seuil pour l'encodeur rotatif
 ENCODER_THRESHOLD = 90
