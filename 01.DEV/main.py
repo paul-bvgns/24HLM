@@ -68,7 +68,6 @@ class VideoPlayer:
         else:
             progress = 0
 
-        # Interpolation linéaire (lerp) - pas d'easing
         self.current_slide_offset = int(progress * self.max_slide_distance)
 
         return progress
@@ -151,26 +150,21 @@ class VideoPlayer:
             time.sleep(0.1)
 
     def render_frame(self, surface):
-        """Affiche la frame avec l'effet de glissement basé sur le progrès"""
         progress = self.calculate_slide_offset()
 
         if self.current_slide_offset > 0:
-            # Effacer l'écran avec du noir
             self.screen.fill((0, 0, 0))
 
-            # Afficher la surface décalée vers le bas
             self.screen.blit(surface, (0, self.current_slide_offset))
 
-            # Effet de fondu quand la vidéo commence à disparaître (à partir de 50% du progrès)
-            if progress > 0.5:
-                fade_progress = (progress - 0.5) * 2  # 0 à 1 pour la seconde moitié
-                fade_alpha = int(fade_progress * 255)
-                fade_surface = pygame.Surface(self.size)
-                fade_surface.set_alpha(fade_alpha)
-                fade_surface.fill((0, 0, 0))
-                self.screen.blit(fade_surface, (0, 0))
+            #if progress > 0.5:
+            #    fade_progress = (progress - 0.5) * 2
+            #   fade_alpha = int(fade_progress * 255)
+            #   fade_surface = pygame.Surface(self.size)
+            #   fade_surface.set_alpha(fade_alpha)
+            #  fade_surface.fill((0, 0, 0))
+            #  self.screen.blit(fade_surface, (0, 0))
         else:
-            # Affichage normal
             self.screen.blit(surface, (0, 0))
 
     def play_video(self, path, loop=False):
