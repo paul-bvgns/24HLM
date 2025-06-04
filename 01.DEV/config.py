@@ -32,7 +32,7 @@ VIDEOS = {
         "loop": "/home/pha5e/24HLM/01.DEV/videos/fr/loop.mp4",
         "action": "/home/pha5e/24HLM/01.DEV/videos/fr/action.mp4",
         "learn": "/home/pha5e/24HLM/01.DEV/videos/fr/learn.mp4",
-        "image": "/home/pha5e/24HLM/01.DEV/videos/fr/image.png",
+        "image": "/home/pha5e/24HLM/01.DEV/videos/fr/image"+ MODE +".png",
     },
     "es": {
         "loop": "/home/pha5e/24HLM/01.DEV/videos/es/loop-video.mp4",

@@ -32,7 +32,7 @@ class VideoPlayer:
 
         # Variables pour l'interaction
         self.interaction_progress = 0.0
-        self.max_slide_distance = self.size[1] + 100
+        self.max_slide_distance = self.size[1]
         self.current_slide_offset = 0
         self.slide_offset_smooth = 0
         self.lerp_speed = 0.1
