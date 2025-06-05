@@ -11,6 +11,8 @@ Configuration pour le système de déclenchement vidéo
 
 MODE = os.getenv("MODE", "button")
 
+TYPE = os.getenv("TYPE", "volant")
+
 ENCODER_THRESHOLD = os.getenv("ENCODER_THRESHOLD", int(50))
 ENCODER_RESET_TIMEOUT = 5
 
@@ -29,9 +31,9 @@ ENABLE_VSYNC = True
 
 VIDEOS = {
     "fr": {
-        "loop": "/home/pha5e/24HLM/01.DEV/videos/fr/loop.mp4",
-        "action": "/home/pha5e/24HLM/01.DEV/videos/fr/action.mp4",
-        "learn": "/home/pha5e/24HLM/01.DEV/videos/fr/learn.mp4",
+        "loop": "/home/pha5e/24HLM/01.DEV/videos/fr/"+ TYPE +"/loop.mp4",
+        "action": "/home/pha5e/24HLM/01.DEV/videos/fr/"+ TYPE +"/action.mp4",
+        "learn": "/home/pha5e/24HLM/01.DEV/videos/fr/"+ TYPE +"/learn.mp4",
         "image": "/home/pha5e/24HLM/01.DEV/videos/fr/image-"+ MODE +".png",
     },
     "es": {
